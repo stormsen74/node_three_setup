@@ -4,11 +4,12 @@
 
 var raf = require('raf');
 import Demo from './demo';
+import CV3 from './checkVector3';
 
 
 
 const init = () => {
-    const demo = new Demo();
+    const demo = new CV3();
     const update = () => {
         raf(update);
         demo.update();
