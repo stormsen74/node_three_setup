@@ -5,6 +5,7 @@
 var raf = require('raf');
 import Demo from './demo';
 import CV3 from './checkVector3';
+import SphericalLight from './sphericalLight';
 
 
 

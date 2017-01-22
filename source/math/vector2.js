@@ -388,7 +388,7 @@ Vector2.prototype = {
 
     angle: function () {
 
-        // computes the angle in radians with respect to the positive x-axis
+        // computes the phi in radians with respect to the positive x-axis
 
         var angle = Math.atan2(this.y, this.x);
 

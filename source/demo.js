@@ -11,7 +11,7 @@ class Demo {
 
     constructor() {
 
-        console.log('Demo!')
+        console.log('CV3!')
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
