@@ -5,6 +5,8 @@
 // var PIXI = require('pixi.js');
 
 import {Vector2} from './math/vector2';
+import mathUtils from './utils/mathUtils';
+
 var THREE = require('three');
 var OrbitControls = require('three-orbitcontrols')
 
@@ -22,7 +24,8 @@ class CV3 {
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
 
-        this.vZero = new THREE.Vector3(0, 0, 0)
+        this.vZero = new THREE.Vector3(0, 0, 0);
+        this.vTarget = new THREE.Vector3(0, 0, 0);
         this.v3 = new THREE.Vector3(0, 0, 0);
         this.SPHERICAL = {
             phi: 0,
@@ -51,7 +54,7 @@ class CV3 {
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
 
-        this.INTERACTION = {
+        this.SETTINGS = {
             centerX: 0,
             centerY: 0,
             targetRotation: 0,
@@ -99,33 +102,46 @@ class CV3 {
     updateParams() {
         this.s.set(this.SPHERICAL.radius, this.SPHERICAL.phi, this.SPHERICAL.theta);
         this.v3.setFromSpherical(this.s)
-        this.setSpherePosition(this.v3);
+        this.setObjectPosition(this.cube, this.v3);
+        this.cube.lookAt(this.vTarget)
 
         this.line.geometry.vertices[1] = this.v3;
         this.line.geometry.verticesNeedUpdate = true;
     }
 
 
-    setSpherePosition(v) {
-        this.sphere.position.x = v.x;
-        this.sphere.position.y = v.y;
-        this.sphere.position.z = v.z;
+    setObjectPosition(o, v) {
+        o.position.x = v.x;
+        o.position.y = v.y;
+        o.position.z = v.z;
     }
 
     initGeometry() {
 
+        var geometry, material
+
         // centerSphere
-        var geometry = new THREE.SphereGeometry(10, 10, 10);
-        var material = new THREE.MeshNormalMaterial();
+        geometry = new THREE.SphereGeometry(this.SPHERICAL.radius, 16, 16);
+        material = new THREE.MeshNormalMaterial({
+            transparent: true, opacity: 0.2
+        });
         this.centerSphere = new THREE.Mesh(geometry, material);
         this.scene.add(this.centerSphere)
 
         // sphere
-        var geometry = new THREE.SphereGeometry(10, 10, 10);
-        var material = new THREE.MeshNormalMaterial();
+        geometry = new THREE.SphereGeometry(10, 10, 10);
+        material = new THREE.MeshNormalMaterial();
         this.sphere = new THREE.Mesh(geometry, material);
         this.scene.add(this.sphere);
         console.log(this.sphere.position)
+
+        geometry = new THREE.CubeGeometry(20, 20, 20, 5, 5, 5);
+        material = new THREE.MeshNormalMaterial({
+            wireframe: false
+        });
+        this.cube = new THREE.Mesh(geometry, material);
+        this.scene.add(this.cube);
+
 
         var line_material = new THREE.LineBasicMaterial({
             color: 0x0000ff,
@@ -173,8 +189,8 @@ class CV3 {
     onPointerDown(event) {
         this.vMouse.pressed = true;
 
-        // this.INTERACTION.mouseXOnMouseDown = event.clientX - this.INTERACTION.centerX;
-        // this.INTERACTION.targetRotationOnMouseDown = this.INTERACTION.targetRotation;
+        // this.SETTINGS.mouseXOnMouseDown = event.clientX - this.SETTINGS.centerX;
+        // this.SETTINGS.targetRotationOnMouseDown = this.SETTINGS.targetRotation;
     }
 
     onPointerUp(event) {
@@ -189,15 +205,15 @@ class CV3 {
         // console.log(x, y)
 
         // if (this.vMouse.pressed) {
-        //     this.INTERACTION.mouseX = event.clientX - this.INTERACTION.centerX;
-        //     this.INTERACTION.targetRotation = this.INTERACTION.targetRotationOnMouseDown + ( this.INTERACTION.mouseX - this.INTERACTION.mouseXOnMouseDown ) * 0.02;
+        //     this.SETTINGS.mouseX = event.clientX - this.SETTINGS.centerX;
+        //     this.SETTINGS.targetRotation = this.SETTINGS.targetRotationOnMouseDown + ( this.SETTINGS.mouseX - this.SETTINGS.mouseXOnMouseDown ) * 0.02;
         // }
     }
 
     resize(_width, _height) {
 
-        this.INTERACTION.centerX = _width / 2;
-        this.INTERACTION.centerY = _width / 2;
+        this.SETTINGS.centerX = _width / 2;
+        this.SETTINGS.centerY = _width / 2;
 
         this.renderer.setSize(_width, _height);
         this.camera.aspect = _width / _height;
@@ -207,20 +223,22 @@ class CV3 {
 
     // TODO GSAP-TEST!
 
-    plotPoint(v) {
-        var g = new THREE.SphereGeometry(5, 5, 5);
-        var m = new THREE.MeshNormalMaterial();
-        m.wireframe = true;
-        var s = new THREE.Mesh(g, m);
-        s.position.x = v.x;
-        s.position.y = v.y;
-        s.position.z = v.z;
-        this.scene.add(s);
+    plotPoint(v, t) {
+        var max = this.waypoints[this.waypoints.length - 1].t;
+        var r = t < max * .5? mathUtils.convertToRange(t, [0, max * .5], [3, 20]):mathUtils.convertToRange(t, [0, max], [20, 3])
+        var geometry = new THREE.CubeGeometry(r, r, r, 5, 5, 5);
+        var material = new THREE.MeshNormalMaterial({
+            wireframe: false
+        });
+        var mesh = new THREE.Mesh(geometry, material);
+        this.setObjectPosition(mesh, v);
+        mesh.lookAt(this.vTarget)
+        this.scene.add(mesh);
     }
 
 
     update() {
-        // this.cube.rotation.y += ( this.INTERACTION.targetRotation - this.cube.rotation.y ) * 0.05;
+        // this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
 
         //return
 
@@ -234,7 +252,9 @@ class CV3 {
 
         this.s = new THREE.Spherical(this.SPHERICAL.radius, this.SPHERICAL.phi, this.SPHERICAL.theta);
         this.v3.setFromSpherical(this.s);
-        this.setSpherePosition(this.v3);
+        this.setObjectPosition(this.cube, this.v3);
+        this.cube.lookAt(this.vTarget)
+
 
         for (var i = 0; i < this.waypoints.length; i++) {
             if (this.SPHERICAL.theta > this.waypoints[i].t && this.waypoints[i].position.x == 0) {
@@ -242,7 +262,7 @@ class CV3 {
                 this.waypoints[i].position.y = this.v3.y;
                 this.waypoints[i].position.z = this.v3.z;
 
-                this.plotPoint(this.v3);
+                this.plotPoint(this.v3, this.SPHERICAL.theta);
             }
         }
 

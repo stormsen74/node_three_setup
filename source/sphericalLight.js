@@ -37,7 +37,7 @@ class SphericalLight {
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
 
-        this.INTERACTION = {
+        this.SETTINGS = {
             centerX: 0,
             centerY: 0,
             targetRotation: 0,
@@ -139,8 +139,8 @@ class SphericalLight {
     onPointerDown(event) {
         this.vMouse.pressed = true;
 
-        // this.INTERACTION.mouseXOnMouseDown = event.clientX - this.INTERACTION.centerX;
-        // this.INTERACTION.targetRotationOnMouseDown = this.INTERACTION.targetRotation;
+        // this.SETTINGS.mouseXOnMouseDown = event.clientX - this.SETTINGS.centerX;
+        // this.SETTINGS.targetRotationOnMouseDown = this.SETTINGS.targetRotation;
     }
 
     onPointerUp(event) {
@@ -155,15 +155,15 @@ class SphericalLight {
         // console.log(x, y)
 
         // if (this.vMouse.pressed) {
-        //     this.INTERACTION.mouseX = event.clientX - this.INTERACTION.centerX;
-        //     this.INTERACTION.targetRotation = this.INTERACTION.targetRotationOnMouseDown + ( this.INTERACTION.mouseX - this.INTERACTION.mouseXOnMouseDown ) * 0.02;
+        //     this.SETTINGS.mouseX = event.clientX - this.SETTINGS.centerX;
+        //     this.SETTINGS.targetRotation = this.SETTINGS.targetRotationOnMouseDown + ( this.SETTINGS.mouseX - this.SETTINGS.mouseXOnMouseDown ) * 0.02;
         // }
     }
 
     resize(_width, _height) {
 
-        this.INTERACTION.centerX = _width / 2;
-        this.INTERACTION.centerY = _width / 2;
+        this.SETTINGS.centerX = _width / 2;
+        this.SETTINGS.centerY = _width / 2;
 
         this.renderer.setSize(_width, _height);
         this.camera.aspect = _width / _height;
@@ -175,7 +175,7 @@ class SphericalLight {
 
 
     update() {
-        // this.cube.rotation.y += ( this.INTERACTION.targetRotation - this.cube.rotation.y ) * 0.05;
+        // this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
 
         //this.plane.rotateX(.01)
 
