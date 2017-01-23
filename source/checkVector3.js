@@ -8,14 +8,15 @@ import {Vector2} from './math/vector2';
 import mathUtils from './utils/mathUtils';
 
 var THREE = require('three');
+var meshline = require('three.meshline');
 var OrbitControls = require('three-orbitcontrols')
+
 
 const PI = Math.PI;
 const HALF_PI = Math.PI * .5;
 const TWO_PI = Math.PI * 2;
 
 class CV3 {
-
 
     constructor() {
 
@@ -67,23 +68,31 @@ class CV3 {
         this.camera.position.y = 0;
         this.camera.position.z = 500;
 
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setClearColor(0xc3c3c3, .5);
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            preserveDrawingBuffer: false,
+            autoClear: true
+        });
+        // this.renderer.autoClear = false;
+        this.renderer.setClearColor(0xc3c3c3, .1);
+
         // renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.screen.appendChild(this.renderer.domElement);
+        this.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 
 
-        var controls = new OrbitControls(this.camera, this.renderer.domElement)
-        controls.enableDamping = true
-        controls.dampingFactor = 0.25
-        controls.enableZoom = true
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.25;
+        this.controls.enableZoom = true;
 
 
         this.scene = new THREE.Scene();
 
 
         this.initGeometry();
+        this.initMeshLine();
         this.initListener();
         this.initDAT()
 
@@ -107,6 +116,8 @@ class CV3 {
 
         this.line.geometry.vertices[1] = this.v3;
         this.line.geometry.verticesNeedUpdate = true;
+
+        this.mesh_line.advance(this.v3)
     }
 
 
@@ -126,21 +137,20 @@ class CV3 {
             transparent: true, opacity: 0.2
         });
         this.centerSphere = new THREE.Mesh(geometry, material);
-        this.scene.add(this.centerSphere)
+        // this.scene.add(this.centerSphere)
 
         // sphere
         geometry = new THREE.SphereGeometry(10, 10, 10);
         material = new THREE.MeshNormalMaterial();
         this.sphere = new THREE.Mesh(geometry, material);
         this.scene.add(this.sphere);
-        console.log(this.sphere.position)
 
         geometry = new THREE.CubeGeometry(20, 20, 20, 5, 5, 5);
         material = new THREE.MeshNormalMaterial({
             wireframe: false
         });
         this.cube = new THREE.Mesh(geometry, material);
-        this.scene.add(this.cube);
+        // this.scene.add(this.cube);
 
 
         var line_material = new THREE.LineBasicMaterial({
@@ -151,7 +161,7 @@ class CV3 {
         this.line_geom.vertices[0] = this.vZero;
         this.line_geom.vertices[1] = this.v3;
         this.line = new THREE.Line(this.line_geom, line_material);
-        this.scene.add(this.line);
+        // this.scene.add(this.line);
 
         //create a blue LineBasicMaterial
         this.draw_line_material = new THREE.LineBasicMaterial({
@@ -164,9 +174,39 @@ class CV3 {
         // this.draw_line_geometry.vertices.push(new THREE.Vector3(0, 100, 0))
         // this.draw_line_geometry.vertices.push(new THREE.Vector3(100, 100, 0))
         this.draw_line = new THREE.Line(this.draw_line_geometry, this.draw_line_material);
-        this.scene.add(this.draw_line);
+        // this.scene.add(this.draw_line);
 
 
+    }
+
+    initMeshLine() {
+
+        this.mesh_line_geometry = new THREE.Geometry();
+        for (var i = 0; i < 30; i++) {
+            this.mesh_line_geometry.vertices.push(new THREE.Vector3(0, 100, 0));
+        }
+
+        this.mesh_line = new meshline.MeshLine();
+        this.mesh_line.setGeometry(this.mesh_line_geometry, function (p) {
+            return 1 * Math.pow(4 * p * ( 1 - p ), 1)
+        });
+
+        var material = new meshline.MeshLineMaterial({
+            color: new THREE.Color(0x00ccff),
+            opacity: 1,
+            resolution: this.resolution,
+            sizeAttenuation: 1,
+            lineWidth: 3,
+            near: 1,
+            far: 100000,
+            depthTest: true,
+            blending: THREE.AdditiveBlending,
+            transparent: false,
+            side: THREE.DoubleSide
+        });
+
+        var mesh = new THREE.Mesh(this.mesh_line.geometry, material); // this syntax could definitely be improved!
+        this.scene.add(mesh);
     }
 
     initListener() {
@@ -219,13 +259,15 @@ class CV3 {
         this.camera.aspect = _width / _height;
         this.camera.updateProjectionMatrix();
 
+        this.resolution.set(_width, _height);
+
     }
 
     // TODO GSAP-TEST!
 
     plotPoint(v, t) {
         var max = this.waypoints[this.waypoints.length - 1].t;
-        var r = t < max * .5? mathUtils.convertToRange(t, [0, max * .5], [3, 20]):mathUtils.convertToRange(t, [0, max], [20, 3])
+        var r = t < max * .5 ? mathUtils.convertToRange(t, [0, max * .5], [3, 20]) : mathUtils.convertToRange(t, [0, max], [20, 3])
         var geometry = new THREE.CubeGeometry(r, r, r, 5, 5, 5);
         var material = new THREE.MeshNormalMaterial({
             wireframe: false
@@ -240,7 +282,7 @@ class CV3 {
     update() {
         // this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
 
-        //return
+        // return
 
         if (this.SPHERICAL.phi >= Math.PI * 2) {
             this.SPHERICAL.phi = 0;
@@ -262,7 +304,7 @@ class CV3 {
                 this.waypoints[i].position.y = this.v3.y;
                 this.waypoints[i].position.z = this.v3.z;
 
-                this.plotPoint(this.v3, this.SPHERICAL.theta);
+                // this.plotPoint(this.v3, this.SPHERICAL.theta);
             }
         }
 
@@ -278,6 +320,10 @@ class CV3 {
         this.draw_line_geometry.vertices.pop()
         this.draw_line_geometry.vertices.unshift(this.v3.clone());
         this.draw_line.geometry.verticesNeedUpdate = true;
+
+        this.mesh_line.advance(this.v3)
+
+        this.controls.update();
     }
 
     render() {

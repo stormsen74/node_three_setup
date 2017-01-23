@@ -7,11 +7,12 @@
 import {Vector2} from './math/vector2';
 var THREE = require('three');
 
+
 class Demo {
 
     constructor() {
 
-        console.log('CV3!')
+        console.log('Demo!')
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
@@ -52,9 +53,10 @@ class Demo {
         var material = new THREE.MeshNormalMaterial();
         this.cube = new THREE.Mesh(geometry, material);
         this.cube.position.y = 150;
-        this.scene.add(this.cube)
+        // this.scene.add(this.cube)
 
     }
+
 
     initListener() {
 

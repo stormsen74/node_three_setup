@@ -7,6 +7,11 @@ import Demo from './demo';
 import CV3 from './checkVector3';
 import SphericalLight from './sphericalLight';
 
+// https://github.com/josdirksen
+// https://github.com/Jam3/three-path-geometry
+// https://github.com/spite/THREE.MeshLine
+// https://github.com/mattdesl/three-line-2d
+
 
 
 const init = () => {
