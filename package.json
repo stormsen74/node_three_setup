@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "gsap": "^1.19.0",
+    "postprocessing": "^1.1.6",
     "raf": "^3.3.0",
     "simplex-noise": "^2.2.0",
     "three": "^0.83.0",
+    "three-effectcomposer": "0.0.1",
     "three-orbitcontrols": "^1.1.2",
     "three.meshline": "^1.0.1"
   },

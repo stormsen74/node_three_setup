@@ -8,6 +8,8 @@ import {Vector2} from './math/vector2';
 import mathUtils from './utils/mathUtils';
 
 var THREE = require('three');
+var EffectComposer = require('three-effectcomposer')(THREE)
+var POSTPROCESSING = require('postprocessing');
 var meshline = require('three.meshline');
 var OrbitControls = require('three-orbitcontrols')
 
@@ -25,6 +27,8 @@ class CV3 {
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
 
+        this.clock = new THREE.Clock(true);
+
         this.vZero = new THREE.Vector3(0, 0, 0);
         this.vTarget = new THREE.Vector3(0, 0, 0);
         this.v3 = new THREE.Vector3(0, 0, 0);
@@ -32,8 +36,8 @@ class CV3 {
             phi: 0,
             theta: 0,
             radius: 200,
-            stepPhi: .01,
-            stepTheta: .1
+            stepPhi: .1,
+            stepTheta: .01
         }
         this.GEOM = {
             count: 120,
@@ -94,7 +98,23 @@ class CV3 {
         this.initGeometry();
         this.initMeshLine();
         this.initListener();
+        this.initComposer();
         this.initDAT()
+
+
+    }
+
+    initComposer() {
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.camera));
+
+        //this.passes = {
+        //    glitchPass: new POSTPROCESSING.GlitchPass()
+        //}
+
+        this.pass = new POSTPROCESSING.BokehPass();
+        this.pass.renderToScreen = true;
+        this.composer.addPass(this.pass);
 
     }
 
@@ -104,8 +124,8 @@ class CV3 {
         this.gui.add(this.SPHERICAL, 'phi').min(0).max(TWO_PI).step(.01).name('phi').onChange(this.updateParams.bind(this));
         this.gui.add(this.SPHERICAL, 'theta').min(0).max(TWO_PI).step(.01).name('theta').onChange(this.updateParams.bind(this));
         this.gui.add(this.SPHERICAL, 'radius').min(0).max(300).step(.01).name('radius').onChange(this.updateParams.bind(this));
-        this.gui.add(this.SPHERICAL, 'stepPhi').min(0.01).max(.1).step(.001).name('stepPhi').onChange(this.updateParams.bind(this));
-        this.gui.add(this.SPHERICAL, 'stepTheta').min(0.01).max(.1).step(.001).name('stepTheta').onChange(this.updateParams.bind(this));
+        this.gui.add(this.SPHERICAL, 'stepPhi').min(0.001).max(.100).step(.001).name('stepPhi').onChange(this.updateParams.bind(this));
+        this.gui.add(this.SPHERICAL, 'stepTheta').min(0.001).max(.100).step(.001).name('stepTheta').onChange(this.updateParams.bind(this));
     }
 
     updateParams() {
@@ -161,7 +181,7 @@ class CV3 {
         this.line_geom.vertices[0] = this.vZero;
         this.line_geom.vertices[1] = this.v3;
         this.line = new THREE.Line(this.line_geom, line_material);
-        // this.scene.add(this.line);
+        //this.scene.add(this.line);
 
         //create a blue LineBasicMaterial
         this.draw_line_material = new THREE.LineBasicMaterial({
@@ -171,10 +191,8 @@ class CV3 {
         for (var i = 0; i < 30; i++) {
             this.draw_line_geometry.vertices.push(new THREE.Vector3(0, 100, 0))
         }
-        // this.draw_line_geometry.vertices.push(new THREE.Vector3(0, 100, 0))
-        // this.draw_line_geometry.vertices.push(new THREE.Vector3(100, 100, 0))
         this.draw_line = new THREE.Line(this.draw_line_geometry, this.draw_line_material);
-        // this.scene.add(this.draw_line);
+        //this.scene.add(this.draw_line);
 
 
     }
@@ -259,6 +277,8 @@ class CV3 {
         this.camera.aspect = _width / _height;
         this.camera.updateProjectionMatrix();
 
+        this.composer.setSize(_width, _height);
+
         this.resolution.set(_width, _height);
 
     }
@@ -327,7 +347,8 @@ class CV3 {
     }
 
     render() {
-        this.renderer.render(this.scene, this.camera);
+        //this.renderer.render(this.scene, this.camera);
+        this.composer.render(this.clock.getDelta());
     }
 
 
