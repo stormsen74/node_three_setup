@@ -2,17 +2,21 @@
  * Created by STORMSEN on 01.12.2016.
  */
 
+// Based on ...
+// https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader
+// https://github.com/spite/spherical-environment-mapping
+
 var THREE = require('three');
 var OBJLoader = require('three-obj-loader')(THREE);
+var SubdivisionModifier = require('three-subdivision-modifier');
 var OrbitControls = require('three-orbitcontrols')
+
+var gsap = require('gsap')
 
 import {Vector2} from './math/vector2';
 import {suzanne} from './assets/suzanne-raw';
 
 class Matcap {
-
-    // https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader
-    // https://github.com/spite/spherical-environment-mapping
 
 
     constructor() {
@@ -57,6 +61,7 @@ class Matcap {
 
         this.initListener();
 
+
         // TODO load shader from glsl file ...
         var material = new THREE.ShaderMaterial({
             uniforms: {
@@ -72,9 +77,22 @@ class Matcap {
         this.LOADER = new THREE.OBJLoader()
         this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
+
         this.render();
 
     }
+
+    //ShaderLoader(vertex_url, fragment_url, onLoad, onProgress, onError) {
+    //    var vertex_loader = new THREE.XHRLoader(THREE.DefaultLoadingManager);
+    //    vertex_loader.setResponseType('text');
+    //    vertex_loader.load(vertex_url, function (vertex_text) {
+    //        var fragment_loader = new THREE.XHRLoader(THREE.DefaultLoadingManager);
+    //        fragment_loader.setResponseType('text');
+    //        fragment_loader.load(fragment_url, function (fragment_text) {
+    //            onLoad(vertex_text, fragment_text);
+    //        });
+    //    }, onProgress, onError);
+    //}
 
 
     createSuzanne() {
@@ -107,15 +125,27 @@ class Matcap {
 
     onLoad(object) {
         // this.scene.add( object );
-        console.log(object.children[0], this.camera)
+        console.log(object.children[0].geometry, this.camera)
 
-        var normalMat = new THREE.MeshNormalMaterial();
         // if (this.mesh) this.scene.remove(this.mesh);
-        this.mesh = new THREE.Mesh(object.children[0].geometry, this.currentMaterial);
+
+        //var normalMat = new THREE.MeshNormalMaterial();
+        this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
+
+        this.mesh = new THREE.Mesh(this.geometry, this.currentMaterial);
         this.mesh.scale.x = 30;
         this.mesh.scale.y = 30;
         this.mesh.scale.z = 30;
+        //this.mesh.rotateX(-Math.PI * .5);
         this.scene.add(this.mesh);
+
+        TweenLite.delayedCall(1, this.divide.bind(this));
+
+    }
+
+    divide() {
+        var modifier = new SubdivisionModifier(2); // Number of subdivisions
+        modifier.modify(this.mesh.geometry);
     }
 
 
