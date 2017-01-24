@@ -2,11 +2,11 @@
  * Created by STORMSEN on 01.12.2016.
  */
 
-// var PIXI = require('pixi.js');
+var THREE = require('three');
+var EffectComposer = require('three-effectcomposer')(THREE)
+var POSTPROCESSING = require('postprocessing');
 
 import {Vector2} from './math/vector2';
-var THREE = require('three');
-
 
 class Demo {
 
@@ -16,6 +16,8 @@ class Demo {
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
+
+        this.clock = new THREE.Clock(true);
 
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
@@ -43,7 +45,26 @@ class Demo {
         this.screen.appendChild(this.renderer.domElement);
 
         this.initGeometry();
+        this.initComposer();
         this.initListener();
+
+    }
+
+    initComposer() {
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.camera));
+
+        //this.passes = {
+        //    glitchPass: new POSTPROCESSING.GlitchPass()
+        //}
+
+        // this.pass = new POSTPROCESSING.GlitchPass();
+        // this.pass.renderToScreen = true;
+        // this.composer.addPass(this.pass);
+
+        this.pass2 = new POSTPROCESSING.BokehPass();
+        this.pass2.renderToScreen = true;
+        this.composer.addPass(this.pass2);
 
     }
 
@@ -53,7 +74,7 @@ class Demo {
         var material = new THREE.MeshNormalMaterial();
         this.cube = new THREE.Mesh(geometry, material);
         this.cube.position.y = 150;
-        // this.scene.add(this.cube)
+        this.scene.add(this.cube)
 
     }
 
@@ -108,6 +129,8 @@ class Demo {
         this.camera.aspect = _width / _height;
         this.camera.updateProjectionMatrix();
 
+        this.composer.setSize(_width, _height);
+
     }
 
     update() {
@@ -115,7 +138,8 @@ class Demo {
     }
 
     render() {
-        this.renderer.render(this.scene, this.camera);
+        this.composer.render(this.clock.getDelta());
+        // this.renderer.render(this.scene, this.camera);
     }
 
 

@@ -2,17 +2,12 @@
  * Created by STORMSEN on 01.12.2016.
  */
 
-// var PIXI = require('pixi.js');
-
-import {Vector2} from './math/vector2';
-import mathUtils from './utils/mathUtils';
-
 var THREE = require('three');
-var EffectComposer = require('three-effectcomposer')(THREE)
-var POSTPROCESSING = require('postprocessing');
 var meshline = require('three.meshline');
 var OrbitControls = require('three-orbitcontrols')
 
+import {Vector2} from './math/vector2';
+import mathUtils from './utils/mathUtils';
 
 const PI = Math.PI;
 const HALF_PI = Math.PI * .5;
@@ -26,8 +21,6 @@ class CV3 {
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
-
-        this.clock = new THREE.Clock(true);
 
         this.vZero = new THREE.Vector3(0, 0, 0);
         this.vTarget = new THREE.Vector3(0, 0, 0);
@@ -98,25 +91,10 @@ class CV3 {
         this.initGeometry();
         this.initMeshLine();
         this.initListener();
-        this.initComposer();
         this.initDAT()
 
-
     }
 
-    initComposer() {
-        this.composer = new EffectComposer(this.renderer);
-        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.camera));
-
-        //this.passes = {
-        //    glitchPass: new POSTPROCESSING.GlitchPass()
-        //}
-
-        this.pass = new POSTPROCESSING.BokehPass();
-        this.pass.renderToScreen = true;
-        this.composer.addPass(this.pass);
-
-    }
 
     initDAT() {
         this.gui = new dat.GUI();
@@ -277,8 +255,6 @@ class CV3 {
         this.camera.aspect = _width / _height;
         this.camera.updateProjectionMatrix();
 
-        this.composer.setSize(_width, _height);
-
         this.resolution.set(_width, _height);
 
     }
@@ -347,8 +323,7 @@ class CV3 {
     }
 
     render() {
-        //this.renderer.render(this.scene, this.camera);
-        this.composer.render(this.clock.getDelta());
+        this.renderer.render(this.scene, this.camera);
     }
 
 

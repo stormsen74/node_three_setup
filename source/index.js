@@ -4,6 +4,7 @@
 
 var raf = require('raf');
 import Demo from './demo';
+import Matcap from './matcap';
 import CV3 from './checkVector3';
 import SphericalLight from './sphericalLight';
 
@@ -15,7 +16,7 @@ import SphericalLight from './sphericalLight';
 
 
 const init = () => {
-    const demo = new CV3();
+    const demo = new Matcap();
     const update = () => {
         raf(update);
         demo.update();
