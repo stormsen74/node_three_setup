@@ -8,19 +8,20 @@
 
 var THREE = require('three');
 var OBJLoader = require('three-obj-loader')(THREE);
-var SubdivisionModifier = require('three-subdivision-modifier');
+// var SubdivisionModifier = require('three-subdivision-modifier');
 var OrbitControls = require('three-orbitcontrols')
 
 var gsap = require('gsap')
 
 import {Vector2} from './math/vector2';
-import {suzanne} from './assets/suzanne-raw';
+
+
+// https://github.com/mrdoob/three.js/blob/dev/examples/js/modifiers/BufferSubdivisionModifier.js
 
 class Matcap {
 
 
     constructor() {
-
 
         console.log('Matcap!')
 
@@ -129,23 +130,33 @@ class Matcap {
 
         // if (this.mesh) this.scene.remove(this.mesh);
 
-        //var normalMat = new THREE.MeshNormalMaterial();
-        this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
+        var normalMat = new THREE.MeshNormalMaterial({
+            wireframe: false,
+            shading: THREE.FlatShading
+        });
 
-        this.mesh = new THREE.Mesh(this.geometry, this.currentMaterial);
+        this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
+        // this.geometry = new THREE.SphereGeometry(50, 10, 10)
+
+        // var modifier = new SubdivisionModifier(0); // Number of subdivisions
+        // var modifier = new THREE.SubdivisionModifier(1); // Number of subdivisions
+        // modifier.modify(this.geometry);
+
+        this.mesh = new THREE.Mesh(this.geometry, normalMat);
         this.mesh.scale.x = 30;
         this.mesh.scale.y = 30;
         this.mesh.scale.z = 30;
-        //this.mesh.rotateX(-Math.PI * .5);
+        this.mesh.rotateX(-Math.PI * .5);
         this.scene.add(this.mesh);
 
-        TweenLite.delayedCall(1, this.divide.bind(this));
+        // TweenLite.delayedCall(1, this.divide.bind(this));
 
     }
 
     divide() {
+        console.log('ds')
         var modifier = new SubdivisionModifier(2); // Number of subdivisions
-        modifier.modify(this.mesh.geometry);
+        modifier.modify(this.geometry);
     }
 
 
