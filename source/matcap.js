@@ -8,8 +8,11 @@
 
 var THREE = require('three');
 var OBJLoader = require('three-obj-loader')(THREE);
-// var SubdivisionModifier = require('three-subdivision-modifier');
-var OrbitControls = require('three-orbitcontrols')
+//var SubdivisionModifier = require('three-subdivision-modifier');
+var SubdivisionModifier = require('./modifiers/SubdivisionModifier');
+var BufferSubdivisionModifier = require('./modifiers/BufferSubdivisionModifier');
+//var OrbitControls = require('three-orbitcontrols')
+var OrbitControls = require('./OrbitControls')
 
 var gsap = require('gsap')
 
@@ -76,7 +79,7 @@ class Matcap {
 
         this.currentMaterial = material;
         this.LOADER = new THREE.OBJLoader()
-        this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+        this.LOADER.load('source/assets/geom.obj', this.onLoad.bind(this));
 
 
         this.render();
@@ -131,21 +134,21 @@ class Matcap {
         // if (this.mesh) this.scene.remove(this.mesh);
 
         var normalMat = new THREE.MeshNormalMaterial({
-            wireframe: false,
+            //wireframe: true,
             shading: THREE.FlatShading
         });
 
         this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
-        // this.geometry = new THREE.SphereGeometry(50, 10, 10)
+        //this.geometry = object.children[0].geometry;
+        //this.geometry = new THREE.SphereGeometry(50, 10, 10)
 
-        // var modifier = new SubdivisionModifier(0); // Number of subdivisions
-        // var modifier = new THREE.SubdivisionModifier(1); // Number of subdivisions
-        // modifier.modify(this.geometry);
+        var modifier = new BufferSubdivisionModifier(3); // Number of subdivisions
+        modifier.modify(this.geometry);
 
         this.mesh = new THREE.Mesh(this.geometry, normalMat);
-        this.mesh.scale.x = 30;
-        this.mesh.scale.y = 30;
-        this.mesh.scale.z = 30;
+        //this.mesh.scale.x = 30;
+        //this.mesh.scale.y = 30;
+        //this.mesh.scale.z = 30;
         this.mesh.rotateX(-Math.PI * .5);
         this.scene.add(this.mesh);
 
