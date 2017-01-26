@@ -4,7 +4,8 @@
 
 var THREE = require('three');
 var meshline = require('three.meshline');
-var OrbitControls = require('three-orbitcontrols')
+// var OrbitControls = require('three-orbitcontrols')
+var OrbitControls = require('./OrbitControls')
 
 import {Vector2} from './math/vector2';
 import mathUtils from './utils/mathUtils';

@@ -17,8 +17,6 @@
     "three": "^0.84.0",
     "three-effectcomposer": "0.0.1",
     "three-obj-loader": "^1.0.2",
-    "three-orbitcontrols": "^1.1.2",
-    "three-subdivision-modifier": "^1.0.5",
     "three.meshline": "^1.0.1"
   },
   "devDependencies": {

@@ -7,14 +7,12 @@
 // https://github.com/spite/spherical-environment-mapping
 
 var THREE = require('three');
+var gsap = require('gsap')
 var OBJLoader = require('three-obj-loader')(THREE);
 //var SubdivisionModifier = require('three-subdivision-modifier');
+var OrbitControls = require('./OrbitControls')
 var SubdivisionModifier = require('./modifiers/SubdivisionModifier');
 var BufferSubdivisionModifier = require('./modifiers/BufferSubdivisionModifier');
-//var OrbitControls = require('three-orbitcontrols')
-var OrbitControls = require('./OrbitControls')
-
-var gsap = require('gsap')
 
 import {Vector2} from './math/vector2';
 
@@ -79,7 +77,7 @@ class Matcap {
 
         this.currentMaterial = material;
         this.LOADER = new THREE.OBJLoader()
-        this.LOADER.load('source/assets/geom.obj', this.onLoad.bind(this));
+        this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
 
         this.render();
@@ -139,16 +137,20 @@ class Matcap {
         });
 
         this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
+        // this.geometry = object.children[0].geometry;
+        // var smooth = THREE.GeometryUtils.clone( this.geometry );
+        this.geometry.computeVertexNormals();
+        this.geometry.mergeVertices();
         //this.geometry = object.children[0].geometry;
         //this.geometry = new THREE.SphereGeometry(50, 10, 10)
 
-        var modifier = new BufferSubdivisionModifier(3); // Number of subdivisions
+        var modifier = new SubdivisionModifier(1); // Number of subdivisions
         modifier.modify(this.geometry);
 
         this.mesh = new THREE.Mesh(this.geometry, normalMat);
-        //this.mesh.scale.x = 30;
-        //this.mesh.scale.y = 30;
-        //this.mesh.scale.z = 30;
+        this.mesh.scale.x = 30;
+        this.mesh.scale.y = 30;
+        this.mesh.scale.z = 30;
         this.mesh.rotateX(-Math.PI * .5);
         this.scene.add(this.mesh);
 
