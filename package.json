@@ -13,7 +13,7 @@
     "gsap": "^1.19.0",
     "postprocessing": "^1.1.6",
     "raf": "^3.3.0",
-    "simplex-noise": "^2.2.0",
+    "simplex-noise": "^2.3.0",
     "three": "^0.84.0",
     "three-effectcomposer": "0.0.1",
     "three-obj-loader": "^1.0.2",

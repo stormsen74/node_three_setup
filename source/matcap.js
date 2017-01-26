@@ -11,8 +11,11 @@ var gsap = require('gsap')
 var OBJLoader = require('three-obj-loader')(THREE);
 //var SubdivisionModifier = require('three-subdivision-modifier');
 var OrbitControls = require('./OrbitControls')
+var ImprovedNoise = require('./ImprovedNoise')
 var SubdivisionModifier = require('./modifiers/SubdivisionModifier');
 var BufferSubdivisionModifier = require('./modifiers/BufferSubdivisionModifier');
+
+var SimplexNoise = require('simplex-noise')
 
 import {Vector2} from './math/vector2';
 
@@ -65,19 +68,35 @@ class Matcap {
 
 
         // TODO load shader from glsl file ...
-        var material = new THREE.ShaderMaterial({
+        var shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                tMatCap: {type: 't', value: THREE.ImageUtils.loadTexture('source/assets/matcap3.jpg')},
+                tMatCap: {type: 't', value: THREE.ImageUtils.loadTexture('source/assets/matcap.jpg')},
             },
             vertexShader: document.getElementById('sem-vs').textContent,
             fragmentShader: document.getElementById('sem-fs').textContent,
             shading: THREE.SmoothShading
-
         });
 
-        this.currentMaterial = material;
+
+        var normalMat = new THREE.MeshNormalMaterial({
+            shading: THREE.FlatShading
+        });
+
+        var wireFrame = new THREE.MeshLambertMaterial({
+            color: 0x565656,
+            wireframe: true
+        });
+
+
+        this.currentMaterial = normalMat;
+
+
+
         this.LOADER = new THREE.OBJLoader()
         this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+
+        this.SIMPLEX = new SimplexNoise();
+        //this.makeBlob();
 
 
         this.render();
@@ -97,71 +116,89 @@ class Matcap {
     //}
 
 
-    createSuzanne() {
-        // var geometry = new THREE.Geometry();
-        // for (var j = 0; j < suzanne.vertices.length; j++) {
-        //     var v = new THREE.Vector3(0, 0, 0);
-        //     v.set(suzanne.vertices[j][0], suzanne.vertices[j][1], suzanne.vertices[j][2]);
-        //     v.multiplyScalar(15);
-        //     geometry.vertices.push(v);
-        // }
-        // for (var j = 0; j < suzanne.faces.length; j++) {
-        //     var f = new THREE.Face3(suzanne.faces[j][0], suzanne.faces[j][1], suzanne.faces[j][2]);
-        //     geometry.faces.push(f);
-        //     var g = new THREE.Face3(suzanne.faces[j][2], suzanne.faces[j][2], suzanne.faces[j][3]);
-        //     geometry.faces.push(g);
-        // }
-        //
-        // geometry.verticesNeedUpdate = true;
-        // geometry.normalsNeedUpdate = true;
-        // geometry.uvsNeedUpdate = true;
-        // // geometry.computeCentroids();
-        // geometry.computeFaceNormals();
-        // geometry.computeVertexNormals();
-        // geometry.computeMorphNormals();
-        // geometry.computeBoundingBox();
-        // // var modifier = new THREE.SubdivisionModifier(2);
-        // // modifier.modify(geometry);
-        // return geometry;
-    }
-
     onLoad(object) {
-        // this.scene.add( object );
-        console.log(object.children[0].geometry, this.camera)
-
-        // if (this.mesh) this.scene.remove(this.mesh);
-
-        var normalMat = new THREE.MeshNormalMaterial({
-            //wireframe: true,
-            shading: THREE.FlatShading
-        });
 
         this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
         // this.geometry = object.children[0].geometry;
         // var smooth = THREE.GeometryUtils.clone( this.geometry );
         this.geometry.computeVertexNormals();
         this.geometry.mergeVertices();
-        //this.geometry = object.children[0].geometry;
-        //this.geometry = new THREE.SphereGeometry(50, 10, 10)
 
-        var modifier = new SubdivisionModifier(1); // Number of subdivisions
+        var modifier = new SubdivisionModifier(2); // Number of subdivisions
         modifier.modify(this.geometry);
 
-        this.mesh = new THREE.Mesh(this.geometry, normalMat);
-        this.mesh.scale.x = 30;
-        this.mesh.scale.y = 30;
-        this.mesh.scale.z = 30;
-        this.mesh.rotateX(-Math.PI * .5);
+        this.mesh = new THREE.Mesh(this.geometry, this.currentMaterial);
+        this.mesh.scale.x = 35;
+        this.mesh.scale.y = 35;
+        this.mesh.scale.z = 35;
+        this.mesh.rotateX(-Math.PI * .3);
         this.scene.add(this.mesh);
-
-        // TweenLite.delayedCall(1, this.divide.bind(this));
 
     }
 
-    divide() {
-        console.log('ds')
-        var modifier = new SubdivisionModifier(2); // Number of subdivisions
-        modifier.modify(this.geometry);
+    makeBlob() {
+        this.blobGeom = this.createBlob();
+        var mesh = new THREE.Mesh(this.blobGeom, this.currentMaterial);
+        mesh.scale.x = mesh.scale.y = mesh.scale.z = 3;
+        this.scene.add(mesh);
+    }
+
+
+    // Perlin Noise functions from Procedurally Bump-Textured Sphere http://mrl.nyu.edu/~perlin/homepage2006/bumpy/index.html
+
+    stripes(x, f) {
+        var t = .5 + .5 * Math.sin(f * 2 * Math.PI * x);
+        return t * t - .5;
+    }
+
+
+    turbulence(x, y, z) {
+        var t = -.5;
+        var W = 60;
+        for (var f = 1; f <= W / 12; f *= 2) {
+            t += Math.abs(this.SIMPLEX.noise3D(f * x, f * y, f * z) / f);
+        }
+        return t;
+    }
+
+
+    crinkly(x, y, z) {
+        return -.1 * this.turbulence(x, y, z);
+    }
+
+
+    lumpy(x, y, z) {
+        return .03 * this.SIMPLEX.noise3D(8 * x, 8 * y, 8 * z);
+    }
+
+
+    marbled(x, y, z) {
+        return .01 * this.stripes(x + 2 * this.turbulence(x, y, z), 1.6);
+    }
+
+
+    createBlob() {
+        var geometry = new THREE.IcosahedronGeometry(5, 3);
+        //var geometry = new THREE.IcosahedronGeometry(10, 5);
+        var n = new THREE.Vector3(0, 0, 0);
+        for (var j = 0; j < geometry.vertices.length; j++) {
+            var v = geometry.vertices[j];
+            n.copy(v);
+            n.normalize();
+            var d = 10 + 3 * this.SIMPLEX.noise3D(.1 * v.x, .1 * v.y, .1 * v.z) + 5 * this.crinkly(.25 * v.x, .25 * v.y, .25 * v.z);
+            n.multiplyScalar(d);
+            v.copy(n);
+        }
+
+        geometry.verticesNeedUpdate = true;
+        geometry.normalsNeedUpdate = true;
+        geometry.uvsNeedUpdate = true;
+        //geometry.computeCentroids();
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        geometry.computeMorphNormals();
+        geometry.computeTangents();
+        return geometry;
     }
 
 
