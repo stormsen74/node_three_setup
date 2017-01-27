@@ -5,10 +5,10 @@
 var THREE = require('three');
 var meshline = require('three.meshline');
 // var OrbitControls = require('three-orbitcontrols')
-var OrbitControls = require('./OrbitControls')
+var OrbitControls = require('./../three/controls/OrbitControls')
 
-import {Vector2} from './math/vector2';
-import mathUtils from './utils/mathUtils';
+import {Vector2} from '../math/vector2';
+import mathUtils from '../utils/mathUtils';
 
 const PI = Math.PI;
 const HALF_PI = Math.PI * .5;

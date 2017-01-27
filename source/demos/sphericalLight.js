@@ -4,7 +4,7 @@
 
 // var PIXI = require('pixi.js');
 
-import {Vector2} from './math/vector2';
+import {Vector2} from '../math/vector2';
 var THREE = require('three');
 
 const PI = Math.PI;

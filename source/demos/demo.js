@@ -6,7 +6,7 @@ var THREE = require('three');
 var EffectComposer = require('three-effectcomposer')(THREE)
 var POSTPROCESSING = require('postprocessing');
 
-import {Vector2} from './math/vector2';
+import {Vector2} from '../math/vector2';
 
 class Demo {
 

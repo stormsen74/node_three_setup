@@ -17,7 +17,7 @@ var THREE = require('three')
  *	- no checks to prevent breaking when uv's don't exist.
  *	- vertex colors are unsupported.
  *	**DDS Images when using corrected uv's passed to subdivision modifier will have their uv's flipy'd within the correct uv set
- *	**Either flipy the DDS image, or use shaders. Don't try correcting the uv's before passing into subdiv (eg: v=1-v).
+ *	**Either flipy the DDS image, or use shader. Don't try correcting the uv's before passing into subdiv (eg: v=1-v).
  *
  * @input THREE.Geometry, or index'd THREE.BufferGeometry with faceUV's (Not vertex uv's)
  * @output non-indexed vertex points, uv's, normals.

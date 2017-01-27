@@ -5,19 +5,20 @@
 // Based on ...
 // https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader
 // https://github.com/spite/spherical-environment-mapping
+//     +
+// https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
 
 var THREE = require('three');
 var gsap = require('gsap')
 var OBJLoader = require('three-obj-loader')(THREE);
-//var SubdivisionModifier = require('three-subdivision-modifier');
-var OrbitControls = require('./OrbitControls')
-var ImprovedNoise = require('./ImprovedNoise')
-var SubdivisionModifier = require('./modifiers/SubdivisionModifier');
-var BufferSubdivisionModifier = require('./modifiers/BufferSubdivisionModifier');
+var ShaderLoader = require('./../three/ShaderLoader')
+var OrbitControls = require('./../three/controls/OrbitControls')
+var SubdivisionModifier = require('./../three/modifiers/SubdivisionModifier');
+var BufferSubdivisionModifier = require('./../three/modifiers/BufferSubdivisionModifier');
 
 var SimplexNoise = require('simplex-noise')
 
-import {Vector2} from './math/vector2';
+import {Vector2} from '../math/vector2';
 
 
 // https://github.com/mrdoob/three.js/blob/dev/examples/js/modifiers/BufferSubdivisionModifier.js
@@ -53,7 +54,9 @@ class Matcap {
         this.scene = new THREE.Scene();
 
 
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: false,
+        });
         this.renderer.setClearColor(0xc3c3c3, .5);
         // renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -66,54 +69,70 @@ class Matcap {
 
         this.initListener();
 
+        this.SCENE_MATERIALS = {
+            normalMaterial: new THREE.MeshNormalMaterial({
+                shading: THREE.FlatShading
+            }),
+            wireFrameMaterial: new THREE.MeshLambertMaterial({
+                color: 0x565656,
+                wireframe: true
+            }),
+            loadedShaderMaterial: null
+        }
 
-        // TODO load shader from glsl file ...
-        var shaderMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                tMatCap: {type: 't', value: THREE.ImageUtils.loadTexture('source/assets/matcap.jpg')},
-            },
-            vertexShader: document.getElementById('sem-vs').textContent,
-            fragmentShader: document.getElementById('sem-fs').textContent,
-            shading: THREE.SmoothShading
-        });
-
-
-        var normalMat = new THREE.MeshNormalMaterial({
-            shading: THREE.FlatShading
-        });
-
-        var wireFrame = new THREE.MeshLambertMaterial({
-            color: 0x565656,
-            wireframe: true
-        });
-
-
-        this.currentMaterial = normalMat;
-
+        this.start = Date.now();
 
 
         this.LOADER = new THREE.OBJLoader()
-        this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+        // this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
-        this.SIMPLEX = new SimplexNoise();
-        //this.makeBlob();
+        // this.SHADER_LOADER = new ShaderLoader('source/shader/sem_vs.glsl', 'source/shader/sem_fs.glsl', this.onLoadShader.bind(this));
+        this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs.glsl', 'source/shader/vdisp_fs.glsl', this.onLoadVDisp.bind(this));
 
 
         this.render();
 
     }
 
-    //ShaderLoader(vertex_url, fragment_url, onLoad, onProgress, onError) {
-    //    var vertex_loader = new THREE.XHRLoader(THREE.DefaultLoadingManager);
-    //    vertex_loader.setResponseType('text');
-    //    vertex_loader.load(vertex_url, function (vertex_text) {
-    //        var fragment_loader = new THREE.XHRLoader(THREE.DefaultLoadingManager);
-    //        fragment_loader.setResponseType('text');
-    //        fragment_loader.load(fragment_url, function (fragment_text) {
-    //            onLoad(vertex_text, fragment_text);
-    //        });
-    //    }, onProgress, onError);
-    //}
+    onLoadVDisp(vertex_text, fragment_text) {
+        var loadedShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                tExplosion: {
+                    type: "t",
+                    value: THREE.ImageUtils.loadTexture('source/assets/v-o.png')
+                },
+                time: { // float initialized to 0
+                    type: "f",
+                    value: 0.0
+                }
+            },
+            vertexShader: vertex_text,
+            fragmentShader: fragment_text,
+            shading: THREE.SmoothShading
+        });
+
+        this.SCENE_MATERIALS.loadedShaderMaterial = loadedShaderMaterial;
+
+        this.makeSphere();
+
+    }
+
+    onLoadShader(vertex_text, fragment_text) {
+
+        var loadedShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                tMatCap: {type: 't', value: THREE.ImageUtils.loadTexture('source/assets/ANGMAP11.jpg')},
+            },
+            vertexShader: vertex_text,
+            fragmentShader: fragment_text,
+            shading: THREE.SmoothShading
+        });
+
+        this.SCENE_MATERIALS.loadedShaderMaterial = loadedShaderMaterial
+
+        this.makeBlob();
+
+    }
 
 
     onLoad(object) {
@@ -127,7 +146,7 @@ class Matcap {
         var modifier = new SubdivisionModifier(2); // Number of subdivisions
         modifier.modify(this.geometry);
 
-        this.mesh = new THREE.Mesh(this.geometry, this.currentMaterial);
+        this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.normalMaterial);
         this.mesh.scale.x = 35;
         this.mesh.scale.y = 35;
         this.mesh.scale.z = 35;
@@ -136,11 +155,25 @@ class Matcap {
 
     }
 
+    makeSphere() {
+        this.sphereGeom = new THREE.IcosahedronGeometry(20, 5);
+        this.sphereMesh = new THREE.Mesh(this.sphereGeom, this.SCENE_MATERIALS.loadedShaderMaterial);
+        this.sphereMesh.scale.x = this.sphereMesh.scale.y = this.sphereMesh.scale.z = 2.5;
+        this.scene.add(this.sphereMesh);
+    }
+
     makeBlob() {
+        this.SIMPLEX = new SimplexNoise();
         this.blobGeom = this.createBlob();
-        var mesh = new THREE.Mesh(this.blobGeom, this.currentMaterial);
-        mesh.scale.x = mesh.scale.y = mesh.scale.z = 3;
-        this.scene.add(mesh);
+        this.blobMesh = new THREE.Mesh(this.blobGeom, this.SCENE_MATERIALS.normalMaterial);
+        this.blobMesh.scale.x = this.blobMesh.scale.y = this.blobMesh.scale.z = 3;
+        this.scene.add(this.blobMesh);
+
+        TweenLite.delayedCall(3, this.switchBlobMaterial.bind(this))
+    }
+
+    switchBlobMaterial() {
+        this.blobMesh.material = this.SCENE_MATERIALS.loadedShaderMaterial;
     }
 
 
@@ -178,8 +211,7 @@ class Matcap {
 
 
     createBlob() {
-        var geometry = new THREE.IcosahedronGeometry(5, 3);
-        //var geometry = new THREE.IcosahedronGeometry(10, 5);
+        var geometry = new THREE.IcosahedronGeometry(10, 5);
         var n = new THREE.Vector3(0, 0, 0);
         for (var j = 0; j < geometry.vertices.length; j++) {
             var v = geometry.vertices[j];
@@ -197,7 +229,7 @@ class Matcap {
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
         geometry.computeMorphNormals();
-        geometry.computeTangents();
+        // geometry.computeTangents();
         return geometry;
     }
 
@@ -265,6 +297,9 @@ class Matcap {
     }
 
     render() {
+        if (this.SCENE_MATERIALS.loadedShaderMaterial) {
+            this.SCENE_MATERIALS.loadedShaderMaterial.uniforms['time'].value = .00025 * ( Date.now() - this.start );
+        }
         this.renderer.render(this.scene, this.camera);
     }
 
