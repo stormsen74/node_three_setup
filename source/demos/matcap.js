@@ -82,15 +82,17 @@ class Matcap {
 
         this.start = Date.now();
 
-
+        this.textureLoader = new THREE.TextureLoader();
         this.LOADER = new THREE.OBJLoader()
         // this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
-        // this.SHADER_LOADER = new ShaderLoader('source/shader/sem_vs.glsl', 'source/shader/sem_fs.glsl', this.onLoadShader.bind(this));
-        this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs.glsl', 'source/shader/vdisp_fs.glsl', this.onLoadVDisp.bind(this));
+
+        //this.SHADER_LOADER = new ShaderLoader('source/shader/sem_vs.glsl', 'source/shader/sem_fs.glsl', this.onLoadShader.bind(this));
+        //this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs.glsl', 'source/shader/vdisp_fs.glsl', this.onLoadVDisp.bind(this));
+        this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs_mute.glsl', 'source/shader/vdisp_fs_mute.glsl', this.onLoadVDisp.bind(this));
 
 
-        this.render();
+        //this.render();
 
     }
 
@@ -99,7 +101,11 @@ class Matcap {
             uniforms: {
                 tExplosion: {
                     type: "t",
-                    value: THREE.ImageUtils.loadTexture('source/assets/v-o.png')
+                    value: this.textureLoader.load('source/assets/flame_01.png')
+                },
+                tMatCap: {
+                    type: 't',
+                    value: this.textureLoader.load('source/assets/matcap.jpg')
                 },
                 time: { // float initialized to 0
                     type: "f",
@@ -114,6 +120,7 @@ class Matcap {
         this.SCENE_MATERIALS.loadedShaderMaterial = loadedShaderMaterial;
 
         this.makeSphere();
+        //this.makeBlob();
 
     }
 
@@ -121,7 +128,10 @@ class Matcap {
 
         var loadedShaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                tMatCap: {type: 't', value: THREE.ImageUtils.loadTexture('source/assets/ANGMAP11.jpg')},
+                tMatCap: {
+                    type: 't',
+                    value: THREE.ImageUtils.loadTexture('source/assets/matcap.jpg')
+                },
             },
             vertexShader: vertex_text,
             fragmentShader: fragment_text,
@@ -158,18 +168,25 @@ class Matcap {
     makeSphere() {
         this.sphereGeom = new THREE.IcosahedronGeometry(20, 5);
         this.sphereMesh = new THREE.Mesh(this.sphereGeom, this.SCENE_MATERIALS.loadedShaderMaterial);
+        this.sphereMesh.geometry.verticesNeedUpdate = true;
+        this.sphereMesh.geometry.normalsNeedUpdate = true;
+        this.sphereMesh.geometry.uvsNeedUpdate = true;
+        this.sphereMesh.geometry.computeFaceNormals();
+        this.sphereMesh.geometry.computeVertexNormals();
+        this.sphereMesh.geometry.computeMorphNormals();
         this.sphereMesh.scale.x = this.sphereMesh.scale.y = this.sphereMesh.scale.z = 2.5;
         this.scene.add(this.sphereMesh);
     }
 
+
     makeBlob() {
         this.SIMPLEX = new SimplexNoise();
         this.blobGeom = this.createBlob();
-        this.blobMesh = new THREE.Mesh(this.blobGeom, this.SCENE_MATERIALS.normalMaterial);
+        this.blobMesh = new THREE.Mesh(this.blobGeom, this.SCENE_MATERIALS.loadedShaderMaterial);
         this.blobMesh.scale.x = this.blobMesh.scale.y = this.blobMesh.scale.z = 3;
         this.scene.add(this.blobMesh);
 
-        TweenLite.delayedCall(3, this.switchBlobMaterial.bind(this))
+        //TweenLite.delayedCall(3, this.switchBlobMaterial.bind(this))
     }
 
     switchBlobMaterial() {
@@ -297,9 +314,9 @@ class Matcap {
     }
 
     render() {
-        if (this.SCENE_MATERIALS.loadedShaderMaterial) {
-            this.SCENE_MATERIALS.loadedShaderMaterial.uniforms['time'].value = .00025 * ( Date.now() - this.start );
-        }
+
+        this.SCENE_MATERIALS.loadedShaderMaterial.uniforms['time'].value = .00025 * ( Date.now() - this.start );
+
         this.renderer.render(this.scene, this.camera);
     }
 

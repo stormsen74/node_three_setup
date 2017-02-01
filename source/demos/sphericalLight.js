@@ -6,6 +6,7 @@
 
 import {Vector2} from '../math/vector2';
 var THREE = require('three');
+var OrbitControls = require('./../three/controls/OrbitControls')
 
 const PI = Math.PI;
 const HALF_PI = Math.PI * .5;
@@ -27,8 +28,8 @@ class SphericalLight {
             phi: 0,
             theta: 0,
             radius: 200,
-            stepAngle: .01,
-            stepTheta: .1
+            stepPhi: .005,
+            stepTheta: .02
         }
         this.step = .05;
         this.s = new THREE.Spherical();
@@ -46,21 +47,30 @@ class SphericalLight {
             mouseX: 0
         }
 
-        this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
-        this.camera.position.y = 100;
-        this.camera.position.z = 500;
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0))
+        this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 5000);
+        this.camera.position.x = -300;
+        this.camera.position.y = -200;
+        this.camera.position.z = 1000;
+
 
         this.scene = new THREE.Scene();
 
 
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(0xc3c3c3, .5);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         // renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.screen.appendChild(this.renderer.domElement);
 
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.25;
+        this.controls.enableZoom = true;
+
         this.initGeometry();
+        this.initLights();
         this.initListener();
         this.initDAT()
 
@@ -82,6 +92,51 @@ class SphericalLight {
 
         this.line.geometry.vertices[1] = this.v3;
         this.line.geometry.verticesNeedUpdate = true;
+
+        this.lightHelper.update();
+        if (this.SPHERICAL.phi >= Math.PI * 2) {
+            this.SPHERICAL.phi = 0;
+        }
+        this.SPHERICAL.phi += this.SPHERICAL.stepPhi;
+        this.SPHERICAL.theta += this.SPHERICAL.stepTheta;
+
+        this.setObjectPosition(this.cube, this.v3);
+        this.spotLight.position.set(this.v3.x, this.v3.y, this.v3.z);
+        //this.cube.lookAt(this.vZero)
+    }
+
+    initLights() {
+        this.spotLight = new THREE.SpotLight(0xa8d1e2);
+        this.spotLight.position.set(100, 300, 100);
+
+        this.spotLight.castShadow = true;
+        this.spotLight.angle = Math.PI / 6;
+        this.spotLight.penumbra = 0.125;
+        this.spotLight.decay = 2;
+        this.spotLight.distance = 1000;
+        this.spotLight.intensity = 2;
+        this.spotLight.shadow.mapSize.width = 1024;
+        this.spotLight.shadow.mapSize.height = 1024;
+        this.spotLight.shadow.camera.near = 1;
+        this.spotLight.shadow.camera.far = 1000;
+
+        this.lightHelper = new THREE.SpotLightHelper(this.spotLight);
+
+        var targetObject = new THREE.Object3D();
+        targetObject.position.y = this.floor.position.y;
+        this.camera.lookAt(new THREE.Vector3(0, targetObject.position.y, 0));
+        this.controls.target.set(0, targetObject.position.y, 0);
+        this.spotLight.target = targetObject;
+
+
+        this.ambient = new THREE.AmbientLight(0xe5b357, .1)
+
+        this.scene.add(this.spotLight);
+        this.scene.add(this.ambient);
+        this.scene.add(this.lightHelper);
+        this.scene.add(targetObject);
+
+
     }
 
     initGeometry() {
@@ -94,7 +149,7 @@ class SphericalLight {
 
 
         var line_material = new THREE.LineBasicMaterial({
-            color: 0x0000ff,
+            color: 0x0000ff
         });
 
         this.line_geom = new THREE.Geometry();
@@ -103,17 +158,35 @@ class SphericalLight {
         this.line = new THREE.Line(this.line_geom, line_material);
         this.scene.add(this.line);
 
+        geometry = new THREE.CubeGeometry(20, 20, 20, 5, 5, 5);
+        material = new THREE.MeshNormalMaterial({
+            wireframe: false
+        });
+        this.cube = new THREE.Mesh(geometry, material);
+        this.scene.add(this.cube);
+
 
         //Create a plane that receives shadows (but does not cast them)
-        var planeGeometry = new THREE.PlaneBufferGeometry(200, 200, 32, 32);
-        var planeMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00})
-        this.plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        this.plane.translateY(-this.SPHERICAL.radius)
-        this.plane.rotateX(-HALF_PI)
+        var floorGeom = new THREE.BoxGeometry(2000, 1, 2000);
+        var floorMaterial = new THREE.MeshPhongMaterial({color: 0xaaaaaa})
+        this.floor = new THREE.Mesh(floorGeom, floorMaterial);
+        this.floor.receiveShadow = true;
+        this.floor.position.y = -500;
 
-        //plane.y = 100;
-        //plane.receiveShadow = true;      6 wr7ooöppoöokiö535787zu8776u5
-        this.scene.add(this.plane);
+
+        var isoGeom = new THREE.IcosahedronBufferGeometry(50, 1);
+        var isoMaterial = new THREE.MeshStandardMaterial({
+            color: 0x6ca6d3,
+            shading: THREE.FlatShading
+        });
+        this.box = new THREE.Mesh(isoGeom, isoMaterial);
+        this.box.castShadow = true;
+        this.box.receiveShadow = true;
+        this.box.position.y = -350;
+
+
+        this.scene.add(this.floor);
+        this.scene.add(this.box);
 
 
     }
@@ -171,30 +244,33 @@ class SphericalLight {
 
     }
 
+    setObjectPosition(o, v) {
+        o.position.x = v.x;
+        o.position.y = v.y;
+        o.position.z = v.z;
+    }
+
     // TODO GSAP-TEST!
 
 
     update() {
-        // this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
 
-        //this.plane.rotateX(.01)
+        //return
 
-        return
-
+        this.lightHelper.update();
 
         if (this.SPHERICAL.phi >= Math.PI * 2) {
             this.SPHERICAL.phi = 0;
-            //this.theta += .1;
         }
         this.SPHERICAL.phi += this.SPHERICAL.stepPhi;
         this.SPHERICAL.theta += this.SPHERICAL.stepTheta;
-        //this.phi += this.step;
-
-        // var axis = new THREE.Vector3(0, 1, 0)
-        // this.v3.applyAxisAngle(axis, this.step)
 
         this.s = new THREE.Spherical(this.SPHERICAL.radius, this.SPHERICAL.phi, this.SPHERICAL.theta);
         this.v3.setFromSpherical(this.s)
+
+        this.setObjectPosition(this.cube, this.v3);
+        this.spotLight.position.set(this.v3.x, this.v3.y, this.v3.z);
+        //this.cube.lookAt(this.vZero)
 
         // var a = new THREE.Euler(0, this.step, 0, 'XYZ');
         // this.v3.applyEuler(a);
@@ -204,9 +280,9 @@ class SphericalLight {
         this.line.geometry.verticesNeedUpdate = true;
 
 
-        this.draw_line_geometry.vertices.pop()
-        this.draw_line_geometry.vertices.unshift(this.v3.clone());
-        this.draw_line.geometry.verticesNeedUpdate = true;
+        //this.draw_line_geometry.vertices.pop()
+        //this.draw_line_geometry.vertices.unshift(this.v3.clone());
+        //this.draw_line.geometry.verticesNeedUpdate = true;
     }
 
     render() {

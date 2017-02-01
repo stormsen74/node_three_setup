@@ -4,7 +4,6 @@
 
 var THREE = require('three');
 var meshline = require('three.meshline');
-// var OrbitControls = require('three-orbitcontrols')
 var OrbitControls = require('./../three/controls/OrbitControls')
 
 import {Vector2} from '../math/vector2';
@@ -149,7 +148,7 @@ class CV3 {
             wireframe: false
         });
         this.cube = new THREE.Mesh(geometry, material);
-        // this.scene.add(this.cube);
+        this.scene.add(this.cube);
 
 
         var line_material = new THREE.LineBasicMaterial({
@@ -277,7 +276,7 @@ class CV3 {
 
 
     update() {
-        // this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
+        this.cube.rotation.y += ( this.SETTINGS.targetRotation - this.cube.rotation.y ) * 0.05;
 
         // return
 
@@ -291,6 +290,7 @@ class CV3 {
 
         this.s = new THREE.Spherical(this.SPHERICAL.radius, this.SPHERICAL.phi, this.SPHERICAL.theta);
         this.v3.setFromSpherical(this.s);
+
         this.setObjectPosition(this.cube, this.v3);
         this.cube.lookAt(this.vTarget)
 
