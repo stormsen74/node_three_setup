@@ -34,6 +34,9 @@ class Matcap {
         document.body.appendChild(this.screen);
 
         this.clock = new THREE.Clock(true);
+        this.start = 0;
+        this.textureLoader = new THREE.TextureLoader();
+        this.LOADER = new THREE.OBJLoader()
 
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
@@ -80,24 +83,43 @@ class Matcap {
             loadedShaderMaterial: null
         }
 
-        this.start = Date.now();
 
-        this.textureLoader = new THREE.TextureLoader();
-        this.LOADER = new THREE.OBJLoader()
+
         // this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
 
-        //this.SHADER_LOADER = new ShaderLoader('source/shader/sem_vs.glsl', 'source/shader/sem_fs.glsl', this.onLoadShader.bind(this));
-        //this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs.glsl', 'source/shader/vdisp_fs.glsl', this.onLoadVDisp.bind(this));
-        this.SHADER_LOADER = new ShaderLoader('source/shader/vdisp_vs_mute.glsl', 'source/shader/vdisp_fs_mute.glsl', this.onLoadVDisp.bind(this));
 
+        var sem_shader_options = {
+            vertex_shader: 'source/shader/sem_vs.glsl',
+            fragment_shader: 'source/shader/sem_fs.glsl',
+            uniforms: {
+                tMatCap: {
+                    type: 't',
+                    value: this.textureLoader.load('source/assets/matcap.jpg')
+                }
+            }
+        };
 
-        //this.render();
+        var vertex_displacement_shader_options = {
+            update_timer: true,
+            vertex_shader: 'source/shader/vdisp_vs.glsl',
+            fragment_shader: 'source/shader/vdisp_fs.glsl',
+            uniforms: {
+                tExplosion: {
+                    type: "t",
+                    value: this.textureLoader.load('source/assets/v-o.png')
+                },
+                time: { // float initialized to 0
+                    type: "f",
+                    value: 0.0
+                }
+            }
+        };
 
-    }
-
-    onLoadVDisp(vertex_text, fragment_text) {
-        var loadedShaderMaterial = new THREE.ShaderMaterial({
+        var vertex_displacement_matcap_shader_options = {
+            update_timer: true,
+            vertex_shader: 'source/shader/vdisp_sem_vs.glsl',
+            fragment_shader: 'source/shader/vdisp_sem_fs.glsl',
             uniforms: {
                 tExplosion: {
                     type: "t",
@@ -111,39 +133,42 @@ class Matcap {
                     type: "f",
                     value: 0.0
                 }
-            },
-            vertexShader: vertex_text,
-            fragmentShader: fragment_text,
-            shading: THREE.SmoothShading
-        });
+            }
+        };
 
-        this.SCENE_MATERIALS.loadedShaderMaterial = loadedShaderMaterial;
 
-        this.makeSphere();
-        //this.makeBlob();
+        this.createShaderMaterial(vertex_displacement_shader_options);
 
     }
 
-    onLoadShader(vertex_text, fragment_text) {
 
-        var loadedShaderMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                tMatCap: {
-                    type: 't',
-                    value: THREE.ImageUtils.loadTexture('source/assets/matcap.jpg')
-                },
-            },
-            vertexShader: vertex_text,
-            fragmentShader: fragment_text,
-            shading: THREE.SmoothShading
-        });
+    createShaderMaterial(options) {
+        var shaderMaterial;
 
-        this.SCENE_MATERIALS.loadedShaderMaterial = loadedShaderMaterial
+        var shaderLoader = new ShaderLoader(
+            options.vertex_shader,
+            options.fragment_shader,
+            shaderReady.bind(this)
+        );
 
-        this.makeBlob();
+        function shaderReady(vertex_text, fragment_text) {
+            shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: options.uniforms,
+                vertexShader: vertex_text,
+                fragmentShader: fragment_text,
+                shading: THREE.SmoothShading
+            });
+
+            if (options.uniforms.time && options.update_timer) this.start = Date.now();
+
+            this.SCENE_MATERIALS.loadedShaderMaterial = shaderMaterial;
+
+            // this.makeSphere();
+            this.makeBlob();
+        }
+
 
     }
-
 
     onLoad(object) {
 
@@ -315,7 +340,7 @@ class Matcap {
 
     render() {
 
-        this.SCENE_MATERIALS.loadedShaderMaterial.uniforms['time'].value = .00025 * ( Date.now() - this.start );
+        if (this.start != 0) this.SCENE_MATERIALS.loadedShaderMaterial.uniforms['time'].value = .00025 * ( Date.now() - this.start );
 
         this.renderer.render(this.scene, this.camera);
     }
