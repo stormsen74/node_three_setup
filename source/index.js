@@ -3,10 +3,10 @@
 //  */
 
 var raf = require('raf');
-import Demo from './demos/demo';
-import Matcap from './demos/matcap';
+//import Demo from './demos/demo';
+//import Matcap from './demos/matcap';
 import CV3 from './demos/checkVector3';
-import SphericalLight from './demos/sphericalLight';
+//import SphericalLight from './demos/sphericalLight';
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -14,9 +14,8 @@ import SphericalLight from './demos/sphericalLight';
 // https://github.com/mattdesl/three-line-2d
 
 
-
 const init = () => {
-    const demo = new Matcap();
+    const demo = new CV3();
     const update = () => {
         raf(update);
         demo.update();
