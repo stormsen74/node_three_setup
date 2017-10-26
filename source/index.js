@@ -4,7 +4,7 @@
 
 var raf = require('raf');
 //import Demo from './demos/demo';
-//import Matcap from './demos/matcap';
+// import Matcap from './demos/matcap';
 import CV3 from './demos/checkVector3';
 //import SphericalLight from './demos/sphericalLight';
 

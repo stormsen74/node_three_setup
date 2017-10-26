@@ -163,8 +163,8 @@ class Matcap {
 
             this.SCENE_MATERIALS.loadedShaderMaterial = shaderMaterial;
 
-            // this.makeSphere();
-            this.makeBlob();
+            this.makeSphere();
+            // this.makeBlob();
         }
 
 

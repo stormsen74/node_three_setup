@@ -6,8 +6,8 @@ var THREE = require('three');
 var meshline = require('three.meshline');
 var OrbitControls = require('./../three/controls/OrbitControls')
 
-import {Vector2} from '../math/vector2';
-import mathUtils from '../utils/mathUtils';
+import {Vector2} from "../math/vector2";
+import mathUtils from "../utils/mathUtils";
 
 const PI = Math.PI;
 const HALF_PI = Math.PI * .5;
@@ -25,6 +25,8 @@ class CV3 {
         this.vZero = new THREE.Vector3(0, 0, 0);
         this.vTarget = new THREE.Vector3(0, 0, 0);
         this.v3 = new THREE.Vector3(0, 0, 0);
+        this.strokeTexture;
+
         this.SPHERICAL = {
             phi: 0,
             theta: 0,
@@ -87,12 +89,26 @@ class CV3 {
 
         this.scene = new THREE.Scene();
 
+        let loader = new THREE.TextureLoader();
+        loader.load('source/assets/stroke.png', this.onTextureLoaded.bind(this))
+
+
+        // this.initGeometry();
+        // this.initMeshLine();
+        // this.initListener();
+        // this.initDAT()
+
+    }
+
+
+    onTextureLoaded(texture) {
+        this.strokeTexture = texture
+        console.log('ld!', this.strokeTexture)
 
         this.initGeometry();
         this.initMeshLine();
         this.initListener();
         this.initDAT()
-
     }
 
 
@@ -152,14 +168,14 @@ class CV3 {
 
 
         var line_material = new THREE.LineBasicMaterial({
-            color: 0x0000ff,
+            color: 0x0000ff
         });
 
         this.line_geom = new THREE.Geometry();
         this.line_geom.vertices[0] = this.vZero;
         this.line_geom.vertices[1] = this.v3;
         this.line = new THREE.Line(this.line_geom, line_material);
-        //this.scene.add(this.line);
+        // this.scene.add(this.line);
 
         //create a blue LineBasicMaterial
         this.draw_line_material = new THREE.LineBasicMaterial({
@@ -188,16 +204,20 @@ class CV3 {
         });
 
         var material = new meshline.MeshLineMaterial({
-            color: new THREE.Color(0x00ccff),
+            map: this.strokeTexture,
+            useMap: true,
             opacity: 1,
+            color: new THREE.Color(0xd5b41a),
             resolution: this.resolution,
-            sizeAttenuation: 1,
-            lineWidth: 3,
+            sizeAttenuation: true,
+            lineWidth: 15,
             near: 1,
             far: 100000,
             depthTest: true,
+            alphaTest: .5,
             blending: THREE.AdditiveBlending,
-            transparent: false,
+            transparent: true,
+
             side: THREE.DoubleSide
         });
 
@@ -318,7 +338,7 @@ class CV3 {
         this.draw_line_geometry.vertices.unshift(this.v3.clone());
         this.draw_line.geometry.verticesNeedUpdate = true;
 
-        this.mesh_line.advance(this.v3)
+        this.mesh_line.advance(this.v3);
 
         this.controls.update();
     }
