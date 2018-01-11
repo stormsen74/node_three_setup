@@ -48,7 +48,7 @@ class Demo {
         this.screen.appendChild(this.renderer.domElement);
 
         this.initGeometry();
-        //this.initLights();
+        // this.initLights();
         this.initComposer();
         this.initListener();
 
@@ -73,6 +73,7 @@ class Demo {
         this.pass_bokeh.renderToScreen = true;
 
         this.composer.addPass(this.pass_bokeh);
+        // this.composer.addPass(this.pass);
         //console.log(this.composer.passes[1]['bokehMaterial']['uniforms']['focus'].value)
 
     }

@@ -9,14 +9,14 @@
 // https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
 
 var THREE = require('three');
-var gsap = require('gsap')
+var gsap = require('gsap');
 var OBJLoader = require('three-obj-loader')(THREE);
-var ShaderLoader = require('./../three/ShaderLoader')
-var OrbitControls = require('./../three/controls/OrbitControls')
+var ShaderLoader = require('./../three/ShaderLoader');
+var OrbitControls = require('./../three/controls/OrbitControls');
 var SubdivisionModifier = require('./../three/modifiers/SubdivisionModifier');
 var BufferSubdivisionModifier = require('./../three/modifiers/BufferSubdivisionModifier');
 
-var SimplexNoise = require('simplex-noise')
+var SimplexNoise = require('simplex-noise');
 
 import {Vector2} from '../math/vector2';
 
@@ -85,7 +85,7 @@ class Matcap {
 
 
 
-        // this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+
 
 
 
@@ -123,7 +123,7 @@ class Matcap {
             uniforms: {
                 tExplosion: {
                     type: "t",
-                    value: this.textureLoader.load('source/assets/flame_01.png')
+                    value: this.textureLoader.load('source/assets/explosion.png')
                 },
                 tMatCap: {
                     type: 't',
@@ -137,7 +137,7 @@ class Matcap {
         };
 
 
-        this.createShaderMaterial(vertex_displacement_shader_options);
+        this.createShaderMaterial(vertex_displacement_matcap_shader_options);
 
     }
 
@@ -155,16 +155,19 @@ class Matcap {
             shaderMaterial = new THREE.ShaderMaterial({
                 uniforms: options.uniforms,
                 vertexShader: vertex_text,
-                fragmentShader: fragment_text,
-                shading: THREE.SmoothShading
+                fragmentShader: fragment_text
+                // shading: THREE.SmoothShading
             });
+
+            shaderMaterial.flatShading = true;
 
             if (options.uniforms.time && options.update_timer) this.start = Date.now();
 
             this.SCENE_MATERIALS.loadedShaderMaterial = shaderMaterial;
 
-            this.makeSphere();
+            // this.makeSphere();
             // this.makeBlob();
+            this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
         }
 
 
@@ -181,7 +184,8 @@ class Matcap {
         var modifier = new SubdivisionModifier(2); // Number of subdivisions
         modifier.modify(this.geometry);
 
-        this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.normalMaterial);
+        // this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.normalMaterial);
+        this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.loadedShaderMaterial);
         this.mesh.scale.x = 35;
         this.mesh.scale.y = 35;
         this.mesh.scale.z = 35;

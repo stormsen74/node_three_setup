@@ -203,7 +203,10 @@ void main() {
     // get a 3d noise using the position, low frequency
     float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
     // compose both noises
-    float displacement = - 10. * noise + b;
+//    float displacement = - 10. * noise + b;
+
+    // add to mesh less displacement
+    float displacement = abs( .01 * (- 10. * noise + b));
 
     // move the position along the normal and transform it
     vec3 newPosition = position + normal * displacement;
