@@ -16,7 +16,7 @@ import SphericalLight from './demos/sphericalLight';
 
 const init = () => {
 
-    const demo = new Matcap();
+    const demo = new Demo();
 
     const update = () => {
         raf(update);

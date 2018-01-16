@@ -3,11 +3,8 @@
  */
 
 var THREE = require('three');
-//var EffectComposer = require('three-effectcomposer')(THREE)
-//var POSTPROCESSING = require('postprocessing');
-import { EffectComposer, GlitchPass, BokehPass, DotScreenPass, GodRaysPass, RenderPass } from "postprocessing";
-
-import {Vector2} from '../math/vector2';
+import {EffectComposer, BokehPass, BloomPass, DotScreenPass, PixelationPass, GodRaysPass, RenderPass} from "postprocessing";
+import {Vector2} from "../math/vector2";
 
 class Demo {
 
@@ -48,7 +45,7 @@ class Demo {
         this.screen.appendChild(this.renderer.domElement);
 
         this.initGeometry();
-        // this.initLights();
+        this.initLights();
         this.initComposer();
         this.initListener();
 
@@ -63,8 +60,15 @@ class Demo {
         //    glitchPass: new POSTPROCESSING.GlitchPass()
         //}
 
-        this.pass = new DotScreenPass();
-        this.pass.renderToScreen = true;
+        this.pass_dotScreen = new DotScreenPass();
+        this.pass_dotScreen.renderToScreen = true;
+
+        this.pass_bloom = new BloomPass();
+        this.pass_bloom.intensity = 2;
+        this.pass_bloom.renderToScreen = true;
+
+        this.pass_pixelation = new PixelationPass(5);
+        this.pass_pixelation.renderToScreen = true;
 
         this.pass_gR = new GodRaysPass(this.scene, this.camera, this.pointLight);
         this.pass_gR.renderToScreen = true;
@@ -72,8 +76,9 @@ class Demo {
         this.pass_bokeh = new BokehPass(this.camera);
         this.pass_bokeh.renderToScreen = true;
 
-        this.composer.addPass(this.pass_bokeh);
-        // this.composer.addPass(this.pass);
+        // this.composer.addPass(this.pass_bokeh);
+        // this.composer.addPass(this.pass_pixelation);
+        this.composer.addPass(this.pass_bloom);
         //console.log(this.composer.passes[1]['bokehMaterial']['uniforms']['focus'].value)
 
     }
@@ -173,7 +178,7 @@ class Demo {
         this.cube.rotation.y += ( this.SETTINGS.targetRotation.y - this.cube.rotation.y ) * 0.05;
         this.cube.rotation.x += ( this.SETTINGS.targetRotation.x - this.cube.rotation.x ) * 0.05;
         let f = (this.SETTINGS.targetRotation.x - this.cube.rotation.x) * .5;
-        this.composer.passes[1]['bokehMaterial']['uniforms']['focus'].value = Math.abs(f);
+        // this.composer.passes[1]['bokehMaterial']['uniforms']['focus'].value = Math.abs(f);
     }
 
     render() {
