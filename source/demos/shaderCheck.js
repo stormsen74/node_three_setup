@@ -34,10 +34,8 @@ class ShaderCheck {
         document.body.appendChild(this.screen);
 
         this.clock = new THREE.Clock(true);
-        this.start = 0;
-        this.time = 0;
         this.textureLoader = new THREE.TextureLoader();
-        this.LOADER = new THREE.OBJLoader()
+        this.LOADER = new THREE.OBJLoader();
 
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
@@ -49,7 +47,7 @@ class ShaderCheck {
             targetRotationOnMouseDown: 0,
             mouseXOnMouseDown: 0,
             mouseX: 0
-        }
+        };
 
         this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 150;
@@ -63,7 +61,7 @@ class ShaderCheck {
         });
 
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
+            antialias: true
         });
         this.renderer.setClearColor(0xc3c3c3, .5);
         // renderer.setPixelRatio( window.devicePixelRatio );
@@ -89,7 +87,7 @@ class ShaderCheck {
         this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
 
         var modifier = new SubdivisionModifier(1); // Number of subdivisions
-        // modifier.modify(this.geometry);
+        modifier.modify(this.geometry);
 
         this.geometry.computeVertexNormals();
         this.geometry.mergeVertices();
