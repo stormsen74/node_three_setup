@@ -36,7 +36,7 @@ class Matcap {
         this.clock = new THREE.Clock(true);
         this.start = 0;
         this.textureLoader = new THREE.TextureLoader();
-        this.LOADER = new THREE.OBJLoader()
+        this.objLoader = new THREE.OBJLoader()
 
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
@@ -167,7 +167,7 @@ class Matcap {
 
             // this.makeSphere();
             // this.makeBlob();
-            this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+            this.objLoader.load('source/assets/suzanne.obj', this.onLoad.bind(this));
         }
 
 

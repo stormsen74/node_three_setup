@@ -7,9 +7,22 @@
     "start": "budo source/index.js:bundle.js --live -- -t [ babelify --presets es2015 ]",
     "build": "browserify source/index.js -t [ babelify --presets es2015 ] -s NAMESPACE | uglifyjs --compress --mangle > bundle.js"
   },
+  "browserify": {
+    "transform": [
+      "babelify",
+      "glslify"
+    ]
+  },
   "author": "stormsen",
   "license": "ISC",
   "dependencies": {
+    "glsl-blend-overlay": "^1.0.5",
+    "glsl-checker": "^1.0.1",
+    "glsl-crosshatch-filter": "^1.0.0",
+    "glsl-film-grain": "^1.0.4",
+    "glsl-halftone": "^1.0.4",
+    "glsl-hash-blur": "^1.0.2",
+    "glslify": "^6.1.0",
     "gsap": "^1.19.0",
     "postprocessing": "^4.1.0",
     "raf": "^3.4.0",

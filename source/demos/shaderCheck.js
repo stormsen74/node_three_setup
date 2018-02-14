@@ -11,6 +11,7 @@
 var THREE = require('three');
 var gsap = require('gsap');
 var OBJLoader = require('three-obj-loader')(THREE);
+var glslify = require('glslify');
 var ShaderLoader = require('./../three/ShaderLoader');
 var OrbitControls = require('./../three/controls/OrbitControls');
 var SubdivisionModifier = require('./../three/modifiers/SubdivisionModifier');
@@ -28,16 +29,14 @@ class ShaderCheck {
 
     constructor() {
 
-        console.log('Matcap!')
+        console.log('ShaderCheck!')
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
 
         this.clock = new THREE.Clock(true);
-        this.start = 0;
-        this.time = 0;
         this.textureLoader = new THREE.TextureLoader();
-        this.LOADER = new THREE.OBJLoader()
+        this.objLoader = new THREE.OBJLoader();
 
         this.vMouse = new Vector2();
         this.vMouse.pressed = false;
@@ -77,55 +76,80 @@ class ShaderCheck {
 
         this.initListener();
 
+        this.tex_1 = this.textureLoader.load('source/assets/dust.png');
+        this.tex_2 = this.textureLoader.load('source/assets/baboon.png');
 
-        this.LOADER.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+
+        //here we create a custom shader with glslify
+        //note USE_MAP is needed to get a 'uv' attribute
+        this.mat = new THREE.ShaderMaterial({
+            vertexShader: glslify('../shader/glslify/vert.glsl'),
+            fragmentShader: glslify('../shader/glslify/noise_frag.glsl'),
+            uniforms: {
+                iChannel0: {type: 't', value: this.tex_1},
+                iChannel1: {type: 't', value: this.tex_2},
+                iGlobalTime: {type: 'f', value: 0}
+            },
+            transparent: true,
+            defines: {
+                USE_MAP: ''
+            }
+        });
+
+        // const geo = new THREE.IcosahedronGeometry(50, 1)
+        const geo = new THREE.BoxGeometry(100, 100, 100)
+        this.mesh = new THREE.Mesh(geo, this.mat)
+        this.scene.add(this.mesh);
+
+        // this.objLoader.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
 
     }
 
 
+
     onLoad(object) {
 
-        this.geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
+        const geo = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
 
-        var modifier = new SubdivisionModifier(1); // Number of subdivisions
-        // modifier.modify(this.geometry);
+            // var modifier = new SubdivisionModifier(1);
+            // modifier.modify(geo);
 
-        this.geometry.computeVertexNormals();
-        this.geometry.mergeVertices();
+        geo.computeVertexNormals();
+        geo.mergeVertices();
 
 
         const material = new THREE.MeshBasicMaterial({color: '#cccc00', wireframe: true});
 
         // this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.normalMaterial);
-        this.mesh = new THREE.Mesh(this.geometry, material);
+        this.mesh = new THREE.Mesh(geo, this.mat);
         this.mesh.scale.x = 35;
         this.mesh.scale.y = 35;
         this.mesh.scale.z = 35;
         this.mesh.rotateX(-Math.PI * .3);
         this.scene.add(this.mesh);
 
-        var shaderLoader = new ShaderLoader(
-            'source/shader/shaderCheck/vert.glsl',
-            'source/shader/shaderCheck/frag.glsl',
-            shaderReady.bind(this)
-        );
+        // var shaderLoader = new ShaderLoader(
+        //     'source/shader/shaderCheck/vert.glsl',
+        //     'source/shader/shaderCheck/frag.glsl',
+        //     shaderReady.bind(this)
+        // );
+        //
+        // function shaderReady(vertex_text, fragment_text) {
+        //     this.shaderMaterial = new THREE.ShaderMaterial({
+        //         uniforms: {
+        //             time: {type: 'f', value: 0.0}
+        //         },
+        //         vertexShader: vertex_text,
+        //         fragmentShader: fragment_text
+        //     });
+        //
+        //     this.shaderMaterial.flatShading = false;
+        //     this.shaderMaterial.uniforms.time.needsUpdate = true;
+        //
+        //     this.mesh.material = this.shaderMaterial
 
-        function shaderReady(vertex_text, fragment_text) {
-            this.shaderMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    time: {type: 'f', value: 0.0}
-                },
-                vertexShader: vertex_text,
-                fragmentShader: fragment_text
-            });
-
-            this.shaderMaterial.flatShading = false;
-            this.shaderMaterial.uniforms.time.needsUpdate = true;
-
-            this.mesh.material =  this.shaderMaterial
-
-        }
+        // }
 
     }
 
@@ -164,8 +188,6 @@ class ShaderCheck {
             event.changedTouches ? event.changedTouches[0] : event
         );
 
-        // console.log(x, y)
-
         if (this.vMouse.pressed) {
             this.SETTINGS.mouseX = event.clientX - this.SETTINGS.centerX;
             this.SETTINGS.targetRotation = this.SETTINGS.targetRotationOnMouseDown + ( this.SETTINGS.mouseX - this.SETTINGS.mouseXOnMouseDown ) * 0.02;
@@ -183,15 +205,11 @@ class ShaderCheck {
     }
 
     update() {
+        this.mat.uniforms.iGlobalTime.value = this.clock.getElapsedTime()
+        // this.shaderMaterial.uniforms.time.value = this.clock.getElapsedTime();
     }
 
     render() {
-
-        console.log(this.clock.getElapsedTime())
-
-
-        this.shaderMaterial.uniforms.time.value = this.clock.getElapsedTime();
-
         this.renderer.render(this.scene, this.camera);
     }
 
