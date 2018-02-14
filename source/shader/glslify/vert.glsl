@@ -1,6 +1,7 @@
+
+varying vec2 vUv;
 varying vec3 vNorm;
 varying vec3 vNormal;
-varying vec2 vUv;
 void main() {
   vUv = uv;
   vNorm = position.xyz;

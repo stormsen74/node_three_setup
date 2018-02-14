@@ -33,6 +33,6 @@ void main() {
   vec3 colorResult = colorNoise + vec3(colorHalftone.rgb);
 //  vec4 colorResult = vec4(colorTexture.rgb, 1.0);
 
-  gl_FragColor = vec4(colorResult, colorTexture_1.a);
+  gl_FragColor = vec4(colorResult, 1.0);
 
 }
