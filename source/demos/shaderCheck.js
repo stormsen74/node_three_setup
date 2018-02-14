@@ -48,7 +48,7 @@ class ShaderCheck {
             targetRotationOnMouseDown: 0,
             mouseXOnMouseDown: 0,
             mouseX: 0
-        }
+        };
 
         this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 150;
@@ -62,7 +62,7 @@ class ShaderCheck {
         });
 
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
+            antialias: true
         });
         this.renderer.setClearColor(0xc3c3c3, .5);
         // renderer.setPixelRatio( window.devicePixelRatio );
@@ -107,13 +107,12 @@ class ShaderCheck {
     }
 
 
-
     onLoad(object) {
 
         const geo = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
 
-            // var modifier = new SubdivisionModifier(1);
-            // modifier.modify(geo);
+        // var modifier = new SubdivisionModifier(1);
+        // modifier.modify(geo);
 
         geo.computeVertexNormals();
         geo.mergeVertices();
