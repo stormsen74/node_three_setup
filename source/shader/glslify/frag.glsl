@@ -1,6 +1,6 @@
 #extension GL_OES_standard_derivatives : enable
 
-varying vec3 vNorm;
+varying vec3 vPosition;
 varying vec2 vUv;
 uniform float iGlobalTime;
 uniform sampler2D iChannel0;
@@ -18,7 +18,7 @@ vec3 sample(vec2 uv) {
 
 void main() {
   //the checker box
-  vec3 colorA = vNorm * 0.5 + 0.5;
+  vec3 colorA = vPosition * 0.5 + 0.5;
   colorA += vec3(checker(vUv, 15.0)) * 0.05;
 
   //our texture with halftone + hash blur  
@@ -31,7 +31,7 @@ void main() {
   colorB = mix(colorB, halftone(colorB, vUv, 35.0), falloff);
   
   //mix the two
-  float blend = smoothstep(0.0, 0.7, vNorm.z);
+  float blend = smoothstep(0.0, 0.7, vPosition.z);
   gl_FragColor.rgb = mix(colorA, colorB, blend);
   gl_FragColor.a = 1.0;
 }

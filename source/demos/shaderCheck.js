@@ -78,16 +78,18 @@ class ShaderCheck {
 
         this.tex_1 = this.textureLoader.load('source/assets/dust.png');
         this.tex_2 = this.textureLoader.load('source/assets/baboon.png');
+        this.tex_3 = this.textureLoader.load('source/assets/matcap2.jpg');
 
 
         //here we create a custom shader with glslify
         //note USE_MAP is needed to get a 'uv' attribute
-        this.mat = new THREE.ShaderMaterial({
-            vertexShader: glslify('../shader/glslify/vert2.glsl'),
-            fragmentShader: glslify('../shader/glslify/noise_frag.glsl'),
+        this.shaderMaterial = new THREE.ShaderMaterial({
+            vertexShader: glslify('../shader/glslify/gl_vert.glsl'),
+            fragmentShader: glslify('../shader/glslify/gl_frag.glsl'),
             uniforms: {
                 iChannel0: {type: 't', value: this.tex_1},
                 iChannel1: {type: 't', value: this.tex_2},
+                iChannel2: {type: 't', value: this.tex_3},
                 iGlobalTime: {type: 'f', value: 0}
             },
             transparent: true,
@@ -96,12 +98,21 @@ class ShaderCheck {
             }
         });
 
-        // const geo = new THREE.IcosahedronGeometry(50, 1)
-        const geo = new THREE.BoxGeometry(100, 100, 100)
-        this.mesh = new THREE.Mesh(geo, this.mat)
-        this.scene.add(this.mesh);
 
-        // this.objLoader.load('source/assets/suzanne.obj', this.onLoad.bind(this));
+
+
+        // const geo = new THREE.IcosahedronGeometry(50, 2)
+        // const geo = new THREE.BoxGeometry(100, 100, 100,10,10,10)
+        // this.mesh = new THREE.Mesh(geo, this.shaderMaterial)
+        // this.mesh.geometry.verticesNeedUpdate = true;
+        // this.mesh.geometry.normalsNeedUpdate = true;
+        // this.mesh.geometry.uvsNeedUpdate = true;
+        // this.mesh.geometry.computeFaceNormals();
+        // this.mesh.geometry.computeVertexNormals();
+        // this.mesh.geometry.computeMorphNormals();
+        // this.scene.add(this.mesh);
+
+        this.objLoader.load('source/assets/geom.obj', this.onLoad.bind(this));
 
 
     }
@@ -111,7 +122,7 @@ class ShaderCheck {
 
         const geo = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
 
-        // var modifier = new SubdivisionModifier(1);
+        // var modifier = new SubdivisionModifier(2);
         // modifier.modify(geo);
 
         geo.computeVertexNormals();
@@ -121,10 +132,10 @@ class ShaderCheck {
         const material = new THREE.MeshBasicMaterial({color: '#cccc00', wireframe: true});
 
         // this.mesh = new THREE.Mesh(this.geometry, this.SCENE_MATERIALS.normalMaterial);
-        this.mesh = new THREE.Mesh(geo, this.mat);
-        this.mesh.scale.x = 35;
-        this.mesh.scale.y = 35;
-        this.mesh.scale.z = 35;
+        this.mesh = new THREE.Mesh(geo, this.shaderMaterial);
+        this.mesh.scale.x = 10;
+        this.mesh.scale.y = 10;
+        this.mesh.scale.z = 10;
         this.mesh.rotateX(-Math.PI * .3);
         this.scene.add(this.mesh);
 
@@ -204,7 +215,7 @@ class ShaderCheck {
     }
 
     update() {
-        this.mat.uniforms.iGlobalTime.value = this.clock.getElapsedTime()
+        this.shaderMaterial.uniforms.iGlobalTime.value = this.clock.getElapsedTime()
         // this.shaderMaterial.uniforms.time.value = this.clock.getElapsedTime();
     }
 

@@ -90,8 +90,8 @@ class Matcap {
 
 
         var sem_shader_options = {
-            vertex_shader: 'source/shader/sem_vs.glsl',
-            fragment_shader: 'source/shader/sem_fs.glsl',
+            vertex_shader: 'source/shader/matcap_vert.glsl',
+            fragment_shader: 'source/shader/matcap_frag.glsl',
             uniforms: {
                 tMatCap: {
                     type: 't',
