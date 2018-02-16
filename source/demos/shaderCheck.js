@@ -84,8 +84,8 @@ class ShaderCheck {
         //here we create a custom shader with glslify
         //note USE_MAP is needed to get a 'uv' attribute
         this.shaderMaterial = new THREE.ShaderMaterial({
-            vertexShader: glslify('../shader/glslify/gl_vert.glsl'),
-            fragmentShader: glslify('../shader/glslify/gl_frag.glsl'),
+            vertexShader: glslify('../shader/glslify/shadertoy_vert.glsl'),
+            fragmentShader: glslify('../shader/glslify/shadertoy_frag.glsl'),
             uniforms: {
                 iChannel0: {type: 't', value: this.tex_1},
                 iChannel1: {type: 't', value: this.tex_2},
@@ -101,18 +101,18 @@ class ShaderCheck {
 
 
 
-        // const geo = new THREE.IcosahedronGeometry(50, 2)
-        // const geo = new THREE.BoxGeometry(100, 100, 100,10,10,10)
-        // this.mesh = new THREE.Mesh(geo, this.shaderMaterial)
+        // const geo = new THREE.IcosahedronGeometry(50, 1)
+        const geo = new THREE.BoxGeometry(100, 100, 100,10,10,10)
+        this.mesh = new THREE.Mesh(geo, this.shaderMaterial)
         // this.mesh.geometry.verticesNeedUpdate = true;
         // this.mesh.geometry.normalsNeedUpdate = true;
         // this.mesh.geometry.uvsNeedUpdate = true;
         // this.mesh.geometry.computeFaceNormals();
         // this.mesh.geometry.computeVertexNormals();
         // this.mesh.geometry.computeMorphNormals();
-        // this.scene.add(this.mesh);
+        this.scene.add(this.mesh);
 
-        this.objLoader.load('source/assets/geom.obj', this.onLoad.bind(this));
+        // this.objLoader.load('source/assets/suzanne.obj', this.onLoad.bind(this));
 
 
     }
