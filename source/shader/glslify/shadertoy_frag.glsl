@@ -179,15 +179,25 @@ void main() {
 //     p = p*p*(3.0-2.0*p);
 //     p = p*p*(3.0-2.0*p);
 
-     float j = 0.0 + abs(sin(iGlobalTime));
-     float f = iqnoise( amount*vUv, j, blur );
+     amount+=5.0*sin(iGlobalTime)*.25*sin(iGlobalTime);
+//     float j = 0.0 + abs(sin(iGlobalTime));
+     float j = 1.0;
+     float b = 1.0 - abs(sin(.25*iGlobalTime));
+     vec2 o = vec2(0.0,0.0);
+     o.x+=sin(iGlobalTime);
+     o.y+=cos(iGlobalTime);
+     float f = iqnoise( amount*vUv+o, j, b );
 
-     gl_FragColor = vec4( f, f, f, 1.0 );
+     vec3 rgb = vec3(.3,.5,.9);
+     rgb*=f;
+
+
+     gl_FragColor = vec4( rgb, 1.0);
 
 
 
  //----------------------------------
- // voronoise
+ // -
  //----------------------------------
 
 //     vec2 p = (-iResolution.xy + 2.0*gl_FragColor)/iResolution.y;
@@ -200,7 +210,7 @@ void main() {
 //         vec3 col = 0.5 + n.yzx;
          vec3 col = 0.5 + n.xxx;
 
-     	gl_FragColor = vec4( col, 1.0 );
+//     	gl_FragColor = vec4( col, 1.0 );
 
 
  }
