@@ -10,6 +10,7 @@ import SphericalLight from './demos/sphericalLight';
 import Flow3 from './demos/flow3';
 import ShaderCheck from './demos/shaderCheck';
 import Polyplane from './demos/polyplane';
+import ColladaImport from './demos/colladaImportTest.js';
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -19,7 +20,7 @@ import Polyplane from './demos/polyplane';
 
 const init = () => {
 
-    const demo = new Polyplane();
+    const demo = new ColladaImport();
 
     const update = () => {
         raf(update);
