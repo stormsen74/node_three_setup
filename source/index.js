@@ -9,6 +9,7 @@ import CV3 from './demos/checkVector3';
 import SphericalLight from './demos/sphericalLight';
 import Flow3 from './demos/flow3';
 import ShaderCheck from './demos/shaderCheck';
+import ColladaImport from './demos/colladaImportTest.js';
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -18,7 +19,7 @@ import ShaderCheck from './demos/shaderCheck';
 
 const init = () => {
 
-    const demo = new ShaderCheck();
+    const demo = new ColladaImport();
 
     const update = () => {
         raf(update);

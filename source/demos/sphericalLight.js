@@ -2,8 +2,6 @@
  * Created by STORMSEN on 01.12.2016.
  */
 
-// var PIXI = require('pixi.js');
-
 import {Vector2} from '../math/vector2';
 var THREE = require('three');
 var OrbitControls = require('./../three/controls/OrbitControls')
