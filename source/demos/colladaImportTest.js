@@ -24,7 +24,7 @@ class ColladaImportTest {
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
 
-        this.clock = new THREE.Clock(true);
+        this.clock = new THREE.Clock();
         this.delta = 0;
         this.elapsed = 0;
 
@@ -50,7 +50,8 @@ class ColladaImportTest {
 
 
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true
+            antialias: true,
+            stencil: false
         });
         this.renderer.setClearColor(0xc3c3c3, .5);
 
@@ -66,17 +67,10 @@ class ColladaImportTest {
 
         this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
         this.cameraControls.enableDamping = true;
-        this.cameraControls.dampingFactor = 0.25;
+        this.cameraControls.dampingFactor = 0.05;
+        this.cameraControls.draggingDampingFactor = 0.5;
         this.cameraControls.enableZoom = true;
 
-        TweenMax.delayedCall(1, () => {
-            this.cameraControls.dampingFactor = 0.05;
-            this.cameraControls.rotate(
-                -90 * THREE.Math.DEG2RAD,
-                10 * THREE.Math.DEG2RAD,
-                true
-            )
-        })
 
 
         let size = 100;
@@ -113,13 +107,25 @@ class ColladaImportTest {
 
 
             this.scene.add(group_1);
-            this.scene.add(group_2)
+            this.scene.add(group_2);
+
+            TweenMax.delayedCall(1, this.moveCam, [this])
+
         });
 
 
         this.initLights();
         this.initListener();
 
+    }
+
+
+    moveCam(scope) {
+        scope.cameraControls.rotate(
+            -90 * THREE.Math.DEG2RAD,
+            10 * THREE.Math.DEG2RAD,
+            true
+        )
     }
 
 
@@ -190,14 +196,19 @@ class ColladaImportTest {
     }
 
     update() {
-        this.delta = this.clock.getDelta();
-        this.elapsed = this.clock.getElapsedTime();
-        this.needsUpdate = this.cameraControls.update(this.delta);
+        // this.delta = this.clock.getDelta();
+        // this.elapsed = this.clock.getElapsedTime();
+        // this.needsUpdate = this.cameraControls.update(this.delta);
 
         // this.controls.update();
     }
 
     render() {
+
+        // this.delta = this.clock.getDelta();
+        this.delta+=.01
+        this.cameraControls.update(this.clock.getDelta());
+
         this.renderer.render(this.scene, this.camera);
     }
 

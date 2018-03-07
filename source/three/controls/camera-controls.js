@@ -2,7 +2,7 @@ let THREE;
 let _v3;
 let _xColumn;
 let _yColumn;
-const EPSILON = 0.01;
+const EPSILON = 0.0001;
 const STATE = {
     NONE        : - 1,
     ROTATE      :   0,
