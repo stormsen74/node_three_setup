@@ -44,6 +44,7 @@ class ColladaImportTest {
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
 
+
         this.pointLight = new THREE.PointLight(0xa8d1e2);
 
         this.scene = new THREE.Scene();
@@ -68,9 +69,12 @@ class ColladaImportTest {
         this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
         this.cameraControls.enableDamping = true;
         this.cameraControls.dampingFactor = 0.05;
-        this.cameraControls.draggingDampingFactor = 0.5;
+        this.cameraControls.draggingDampingFactor = 0.25;
         this.cameraControls.enableZoom = true;
-
+        this.cameraControls.minDistance = 3;
+        this.cameraControls.maxDistance = 10;
+        this.cameraControls.minPolarAngle = .2;
+        this.cameraControls.maxPolarAngle = Math.PI*.45;
 
 
         let size = 100;
@@ -124,7 +128,7 @@ class ColladaImportTest {
         scope.cameraControls.rotate(
             -90 * THREE.Math.DEG2RAD,
             10 * THREE.Math.DEG2RAD,
-            true
+            false
         )
     }
 
@@ -206,7 +210,8 @@ class ColladaImportTest {
     render() {
 
         // this.delta = this.clock.getDelta();
-        this.delta+=.01
+        console.log(this.cameraControls._spherical)
+        this.delta += .01
         this.cameraControls.update(this.clock.getDelta());
 
         this.renderer.render(this.scene, this.camera);

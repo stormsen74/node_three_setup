@@ -160,7 +160,7 @@ class Polyplane {
 
     makePlane() {
         this.SIMPLEX = new SimplexNoise();
-        this.planeGeom = new THREE.PlaneGeometry(150, 150, 30, 30);
+        this.planeGeom = new THREE.PlaneGeometry(150, 150, 50, 50);
         this.planeMaterial = new THREE.MeshPhongMaterial({
             wireframe: false,
             side: THREE.DoubleSide,
@@ -245,8 +245,6 @@ class Polyplane {
         this._quaternion2.setFromAxisAngle(this._axis2, .0075);
         this.geo2.position.applyQuaternion(this._quaternion2);
         this.pLight_02.position.applyQuaternion(this._quaternion2);
-
-
     }
 
     render() {
