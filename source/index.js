@@ -11,6 +11,7 @@ import Flow3 from './demos/flow3';
 import ShaderCheck from './demos/shaderCheck';
 import Polyplane from './demos/polyplane';
 import ColladaImport from './demos/colladaImportTest.js';
+import SceneSetupBase from './demos/sceneSetupBase';
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -20,7 +21,7 @@ import ColladaImport from './demos/colladaImportTest.js';
 
 const init = () => {
 
-    const demo = new ColladaImport();
+    const demo = new SceneSetupBase();
 
     const update = () => {
         raf(update);

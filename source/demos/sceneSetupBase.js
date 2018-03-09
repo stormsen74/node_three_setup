@@ -16,7 +16,7 @@ var gsap = require('gsap');
 
 var ColladaLoader = require('../three/loader/colladaLoader');
 
-class ColladaImportTest {
+class SceneSetupBase {
 
     constructor() {
 
@@ -84,56 +84,23 @@ class ColladaImportTest {
         this.scene.add(gridHelper);
 
 
-        const colladaLoader = new THREE.ColladaLoader();
-
-        // colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_01.DAE', colladaModel => {
-        //     console.log(colladaModel);
-        //
-        //     let group_1 = colladaModel.scene.children[0];
-        //     let group_2 = colladaModel.scene.children[1];
-        //
-        //     let material_1 = new THREE.MeshStandardMaterial({
-        //             color: new THREE.Color(0xff0000)
-        //         }
-        //     );
-        //
-        //     let material_2 = new THREE.MeshStandardMaterial({
-        //             color: new THREE.Color(0x0000ff)
-        //         }
-        //     );
-        //
-        //     group_1.children.forEach(mesh => {
-        //         mesh.material = material_1;
-        //     });
-        //
-        //     group_2.children.forEach(mesh => {
-        //         mesh.material = material_2;
-        //     });
-        //
-        //
-        //     this.scene.add(group_1);
-        //     this.scene.add(group_2);
-        //
-        //     TweenMax.delayedCall(1, this.moveCam, [this])
-        //
-        // });
-
         this.backgroundContainer = new THREE.Object3D();
+        const colladaLoader = new THREE.ColladaLoader();
         colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups_pivotcenter.DAE', colladaModel => {
             console.log(colladaModel);
 
-
-            let material_1 = new THREE.MeshStandardMaterial({color: new THREE.Color(0xff0000)});
+            let colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0x00ffff];
+            let scene_material = new THREE.MeshStandardMaterial({color: new THREE.Color(0xcccccc)});
 
 
             this.backgroundScene_01 = colladaModel.scene.children[0];
-            this.backgroundScene_01.material = material_1;
+
             this.backgroundScene_01.children.forEach((obj, i) => {
-                console.log(i)
-                obj.material = material_1;
+                // obj.material = scene_material;
+                console.log(i, obj)
+                obj.material = new THREE.MeshStandardMaterial({color: new THREE.Color(colors[i])});
             });
             this.backgroundScene_01.position.z = 0;
-            console.log(this.backgroundScene_01.children[0])
 
             // this.backgroundScene_01.children[0].position.z = 300
 
@@ -176,7 +143,7 @@ class ColladaImportTest {
 
     initLights() {
 
-        this.pointLight.position.set(0, 300, 100);
+        this.pointLight.position.set(0, 300, 0);
         this.lightHelper = new THREE.PointLightHelper(this.pointLight);
 
         this.scene.add(this.pointLight);
@@ -268,4 +235,4 @@ class ColladaImportTest {
 // Exports
 // ——————————————————————————————————————————————————
 
-export default ColladaImportTest;
+export default SceneSetupBase;

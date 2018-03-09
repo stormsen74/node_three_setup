@@ -1,0 +1,150 @@
+import React from 'react';
+import * as THREE from 'three';
+import FrameTimer from 'webgl/utils/FrameTimer';
+import Shader from 'webgl/webpack/Shader';
+import debugFrag from 'webgl/glsl/debug.frag';
+import generalVert from 'webgl/glsl/general.vert';
+import DocumentTitle from "react-document-title";
+import CameraControls from 'webgl/utils/CameraControls';
+import WebGLCDN from 'webgl/config/WebGLCDN';
+import gsap from 'gsap';
+
+import ColladaLoader from 'webgl/utils/ColladaLoader';
+
+class WebGLOrbitControllTesting extends React.Component {
+
+  constructor() {
+    super();
+    this.frameTimer = new FrameTimer();
+    this.frameTimer.run = this.run.bind(this);
+    this.clock = new THREE.Clock();
+    window.addEventListener('resize', this.resize.bind(this));
+  }
+
+  componentDidMount() {
+
+    this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
+    this.camera.position.y = 1.7;
+    this.camera.position.z = 6;
+
+    this.scene = new THREE.Scene();
+
+    // ——————————————————————————————————————————————————
+    // Camera-Controls
+    // ——————————————————————————————————————————————————
+
+    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.cameraControls.enableDamping = true;
+    this.cameraControls.dampingFactor = 0.05;
+    this.cameraControls.draggingDampingFactor = 0.25;
+    this.cameraControls.enableZoom = true;
+    // this.cameraControls.minDistance = 3;
+    // this.cameraControls.maxDistance = 10;
+    this.cameraControls.minPolarAngle = .2;
+    this.cameraControls.maxPolarAngle = Math.PI * .45;
+    this.cameraControls.rotate(-Math.PI * 0.5, Math.PI, false);
+    this.cameraControls.dolly(10, false);
+    this.cameraControls.pan(0, -10, false);
+
+
+    // ——————————————————————————————————————————————————
+    // Helper
+    // ——————————————————————————————————————————————————
+    this.material = new Shader({
+      vert: generalVert,
+      frag: debugFrag
+    });
+
+    // Basic Scene
+
+    this.scene.add(new THREE.GridHelper(10, 10));
+    this.scene.add(new THREE.AxesHelper(1));
+
+    this.planeGeom = new THREE.PlaneBufferGeometry(300, 300);
+    this.plane = new THREE.Mesh(this.planeGeom, this.material);
+    this.plane.rotation.x = -Math.PI * 0.5;
+    this.scene.add(this.plane);
+
+    this.cubeGeoom = new THREE.BoxBufferGeometry(2, 1.5, 2);
+    this.cube = new THREE.Mesh(this.cubeGeoom, this.material);
+    this.cube.position.y = 1;
+    this.scene.add(this.cube);
+
+    const options = {canvas: this.canvas, antialias: true};
+    this.renderer = new THREE.WebGLRenderer(options);
+    this.renderer.setClearColor(0xc3c3c3, .5);
+
+    //Load Background Geometry
+
+
+    this.backgroundContainer = new THREE.Object3D();
+
+    this.colladaLoader = new THREE.ColladaLoader();
+    this.colladaLoader.load(WebGLCDN.root + 'models/Smart_Cities_Main_Scene_animationgroups.DAE', background => {
+      console.log(background);
+
+      this.backgroundScene_01 = background.scene.children[0];
+      this.backgroundScene_01.material = this.material;
+      this.backgroundScene_01.children.forEach(obj => {
+        obj.material = this.material;
+      });
+      this.backgroundScene_01.position.z += 60;
+      console.log(this.backgroundScene_01.children[0])
+
+      // this.backgroundScene_01.children[0].position.z = 300
+
+
+      let box = new THREE.Box3().setFromObject( this.backgroundScene_01 );
+      console.log( box.min, box.max, box.size() );
+
+      let box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
+      this.backgroundContainer.add(box_1);
+
+      let clone = this.backgroundScene_01.clone();
+      clone.position.z = 200;
+
+      let box_2 = new THREE.BoxHelper(clone, 0x0000ff);
+      this.backgroundContainer.add(box_2);
+
+      this.backgroundContainer.add(this.backgroundScene_01);
+      this.backgroundContainer.add(clone);
+      this.scene.add(this.backgroundContainer);
+
+    });
+
+    this.resize();
+    this.frameTimer.start();
+
+
+    // this.backgroundLoop();
+  }
+
+
+  backgroundLoop() {
+    TweenMax.to(this.backgroundContainer.position, 20, {z: -200})
+  }
+
+  resize() {
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+  }
+
+  run() {
+    this.backgroundContainer.position.z -= .3;
+    this.deltaTime = this.clock.getDelta();
+    this.cameraControls.update(this.deltaTime);
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  render() {
+    return (
+      <DocumentTitle title='WebGL Test | smart Cities'>
+        <canvas ref={ref => this.canvas = ref}/>
+      </DocumentTitle>
+    );
+  }
+
+}
+
+export default WebGLOrbitControllTesting;
