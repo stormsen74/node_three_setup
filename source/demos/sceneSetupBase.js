@@ -20,7 +20,7 @@ class SceneSetupBase {
 
     constructor() {
 
-        console.log('Demo!')
+        console.log('1!')
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
@@ -29,16 +29,15 @@ class SceneSetupBase {
         this.delta = 0;
         this.elapsed = 0;
 
-        this.vMouse = new Vector2();
-        this.vMouse.pressed = false;
-
         this.SETTINGS = {
-            centerX: 0,
-            centerY: 0,
-            targetRotation: {x: 0, y: 0},
-            targetRotationOnMouseDown: {x: 0, y: 0},
-            tapLocation: {x: 0, y: 0},
-            pointer: {x: 0, y: 0}
+            tlProgress: 0.0,
+            tlSpeed: 1,
+            METHODS: {
+                togglePlay: function () {
+                },
+                reset: function () {
+                }
+            },
         };
 
         this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
@@ -73,7 +72,7 @@ class SceneSetupBase {
         this.cameraControls.draggingDampingFactor = 0.25;
         this.cameraControls.enableZoom = true;
         this.cameraControls.minDistance = 3;
-        this.cameraControls.maxDistance = 30;
+        this.cameraControls.maxDistance = 100;
         this.cameraControls.minPolarAngle = .2;
         this.cameraControls.maxPolarAngle = Math.PI * .45;
 
@@ -85,6 +84,11 @@ class SceneSetupBase {
 
 
         this.backgroundContainer = new THREE.Object3D();
+        this.backgroundLoopParams = {
+            offset: 20,
+            boxWidth: 0,
+            distance: 0
+        };
         const colladaLoader = new THREE.ColladaLoader();
         colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups_pivotcenter.DAE', colladaModel => {
             console.log(colladaModel);
@@ -97,7 +101,7 @@ class SceneSetupBase {
 
             this.backgroundScene_01.children.forEach((obj, i) => {
                 // obj.material = scene_material;
-                console.log(i, obj)
+                console.log(i, obj);
                 obj.material = new THREE.MeshStandardMaterial({color: new THREE.Color(colors[i])});
             });
             this.backgroundScene_01.position.z = 0;
@@ -106,34 +110,73 @@ class SceneSetupBase {
 
 
             let box = new THREE.Box3().setFromObject(this.backgroundScene_01);
-            console.log(box.min, box.max, box.size());
+            console.log('box-size', box.getSize());
+            this.backgroundLoopParams.boxWidth = box.getSize().z;
+            this.backgroundLoopParams.distance = this.backgroundLoopParams.offset + this.backgroundLoopParams.boxWidth + this.backgroundLoopParams.offset;
 
-            let box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
-            this.backgroundContainer.add(box_1);
+            this.box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
+            this.scene.add(this.box_1);
 
-            let clone = this.backgroundScene_01.clone();
-            clone.position.z = 200;
+            this.backgroundScene_01_Clone = this.backgroundScene_01.clone();
+            this.backgroundScene_01_Clone.position.z = this.backgroundLoopParams.boxWidth;
 
-            let box_2 = new THREE.BoxHelper(clone, 0x0000ff);
-            this.backgroundContainer.add(box_2);
+            this.box_2 = new THREE.BoxHelper(this.backgroundScene_01_Clone, 0x0000ff);
+            this.scene.add(this.box_2);
 
             this.backgroundContainer.add(this.backgroundScene_01);
-            this.backgroundContainer.add(clone);
+            this.backgroundContainer.add(this.backgroundScene_01_Clone);
             this.scene.add(this.backgroundContainer);
 
-            TweenMax.delayedCall(1, this.moveCam, [this])
+            this.initTimeline();
+            TweenMax.delayedCall(1, this.moveCam, null, this);
+
+            this.initDAT();
 
         });
 
 
         this.initLights();
-        this.initListener();
 
     }
 
 
-    moveCam(scope) {
-        scope.cameraControls.rotate(
+    doLoop() {
+        this.tl.progress(0);
+        this.tl.play();
+    }
+
+
+    initTimeline() {
+        console.log('tl:', this.backgroundLoopParams.distance)
+        this.tl = new TimelineMax({
+            paused: true,
+            // repeat: -1,
+            onStartScope: this,
+            onUpdate: () => {
+                this.box_1.update();
+                this.box_2.update();
+                this.SETTINGS.tlProgress = this.tl.progress();
+            }
+        });
+
+        this.tl
+            .set(this.backgroundScene_01_Clone.position, {z: this.backgroundLoopParams.boxWidth}, '-=0.0')
+            .to(this.backgroundContainer.position, 5.0, {z: -this.backgroundLoopParams.boxWidth, ease: Linear.easeNone}, '-=0.0')
+            .set(this.backgroundScene_01.position, {z: 2 * this.backgroundLoopParams.boxWidth}, '-=0.0')
+            .to(this.backgroundContainer.position, 5.0, {z: -2 * this.backgroundLoopParams.boxWidth, ease: Linear.easeNone}, '-=0.0')
+            .call(this.doLoop, null, this);
+
+
+        TweenMax.delayedCall(1.5, () => {
+            this.tl.play();
+        }, null, this);
+
+
+    }
+
+
+    moveCam() {
+        this.cameraControls.rotate(
             -90 * THREE.Math.DEG2RAD,
             10 * THREE.Math.DEG2RAD,
             true
@@ -142,7 +185,6 @@ class SceneSetupBase {
 
 
     initLights() {
-
         this.pointLight.position.set(0, 300, 0);
         this.lightHelper = new THREE.PointLightHelper(this.pointLight);
 
@@ -151,80 +193,39 @@ class SceneSetupBase {
     }
 
 
-    initListener() {
-
-        this.onPointerDown = this.onPointerDown.bind(this);
-        this.onPointerUp = this.onPointerUp.bind(this);
-        this.onPointerMove = this.onPointerMove.bind(this);
-
-
-        this.screen.addEventListener('mousedown', this.onPointerDown, false);
-        this.screen.addEventListener('touchstart', this.onPointerDown, false);
-
-        this.screen.addEventListener('mouseup', this.onPointerUp, false);
-        this.screen.addEventListener('touchend', this.onPointerUp, false);
-
-        this.screen.addEventListener('mousemove', this.onPointerMove, false);
-        this.screen.addEventListener('touchmove', this.onPointerMove, false);
-    }
-
-
-    onPointerDown(event) {
-        this.vMouse.pressed = true;
-
-        this.SETTINGS.tapLocation.x = event.clientX - this.SETTINGS.centerX;
-        this.SETTINGS.tapLocation.y = event.clientY - this.SETTINGS.centerY;
-        this.SETTINGS.targetRotationOnMouseDown.y = this.SETTINGS.targetRotation.y;
-        this.SETTINGS.targetRotationOnMouseDown.x = this.SETTINGS.targetRotation.x;
-    }
-
-    onPointerUp(event) {
-        this.vMouse.pressed = false;
-    }
-
-    onPointerMove(event) {
-        const {clientX: x, clientY: y} = (
-            event.changedTouches ? event.changedTouches[0] : event
-        );
-
-        // console.log(x, y)
-
-        if (this.vMouse.pressed) {
-            this.SETTINGS.pointer.x = event.clientX - this.SETTINGS.centerX;
-            this.SETTINGS.pointer.y = event.clientY - this.SETTINGS.centerY;
-            this.SETTINGS.targetRotation.y = this.SETTINGS.targetRotationOnMouseDown.y + (this.SETTINGS.pointer.x - this.SETTINGS.tapLocation.x) * 0.02;
-            this.SETTINGS.targetRotation.x = this.SETTINGS.targetRotationOnMouseDown.x + (this.SETTINGS.pointer.y - this.SETTINGS.tapLocation.y) * 0.02;
-        }
-    }
-
     resize(_width, _height) {
-        this.SETTINGS.centerX = _width / 2;
-        this.SETTINGS.centerY = _width / 2;
-
         this.renderer.setSize(_width, _height);
         this.camera.aspect = _width / _height;
         this.camera.updateProjectionMatrix();
-
     }
 
     update() {
-        // this.delta = this.clock.getDelta();
-        // this.elapsed = this.clock.getElapsedTime();
-        // this.needsUpdate = this.cameraControls.update(this.delta);
 
-        // this.controls.update();
     }
+
 
     render() {
 
-        // this.delta = this.clock.getDelta();
-        // console.log(this.cameraControls._spherical)
-        // this.delta += .01
         this.needsUpdate = this.clock.getDelta();
         this.cameraControls.update(this.needsUpdate);
-
-
         this.renderer.render(this.scene, this.camera);
+    }
+
+
+    initDAT() {
+        this.gui = new dat.GUI();
+
+        this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
+        this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').onChange(this.updateParams.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'togglePlay').onChange(this.togglePlay.bind(this));
+    }
+
+    togglePlay() {
+        this.tl.isActive() ? this.tl.pause() : this.tl.play();
+    }
+
+    updateParams() {
+        this.tl.timeScale(this.SETTINGS.tlSpeed);
     }
 
 
