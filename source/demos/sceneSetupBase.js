@@ -16,11 +16,15 @@ var gsap = require('gsap');
 
 var ColladaLoader = require('../three/loader/colladaLoader');
 
+var glslify = require('glslify');
+
 class SceneSetupBase {
 
     constructor() {
 
         console.log('1!')
+
+        this.textureLoader = new THREE.TextureLoader();
 
         this.screen = document.getElementById('screen');
         document.body.appendChild(this.screen);
@@ -31,11 +35,16 @@ class SceneSetupBase {
 
         this.SETTINGS = {
             tlProgress: 0.0,
-            tlSpeed: 1,
+            tlSpeed: 0,
+            boundingBox: true,
             METHODS: {
                 togglePlay: function () {
                 },
-                reset: function () {
+                fadeIn: function () {
+                },
+                playBlocks: function () {
+                },
+                reverseBlocks: function () {
                 }
             },
         };
@@ -43,9 +52,6 @@ class SceneSetupBase {
         this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
-
-
-        this.pointLight = new THREE.PointLight(0xa8d1e2);
 
         this.scene = new THREE.Scene();
 
@@ -67,6 +73,7 @@ class SceneSetupBase {
         // this.controls.enableZoom = true;
 
         this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
+
         this.cameraControls.enableDamping = true;
         this.cameraControls.dampingFactor = 0.05;
         this.cameraControls.draggingDampingFactor = 0.25;
@@ -83,26 +90,51 @@ class SceneSetupBase {
         this.scene.add(gridHelper);
 
 
+        this.shaderMaterial = new THREE.ShaderMaterial({
+            vertexShader: glslify('../shader/glslify/matcap_vert.glsl'),
+            fragmentShader: glslify('../shader/glslify/matcap_frag.glsl'),
+            uniforms: {
+                iChannel2: {type: 't', value: this.textureLoader.load('source/assets/matcap.jpg')},
+                iGlobalTime: {type: 'f', value: 0}
+            },
+            transparent: false,
+            defines: {
+                USE_MAP: ''
+            }
+        });
+
+
+        this.cubeGeom = new THREE.BoxBufferGeometry(2, 1.5, 1.5);
+        this.cube = new THREE.Mesh(this.cubeGeom, this.shaderMaterial);
+        this.cube.position.y = 1;
+        this.scene.add(this.cube);
+
+
         this.backgroundContainer = new THREE.Object3D();
         this.backgroundLoopParams = {
             offset: 20,
-            boxWidth: 0,
-            distance: 0
+            boxWidth: 0
         };
+
+        this.blocks = [];
+        this.blocksCloned = [];
         const colladaLoader = new THREE.ColladaLoader();
         colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups_pivotcenter.DAE', colladaModel => {
             console.log(colladaModel);
 
             let colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0x00ffff];
-            let scene_material = new THREE.MeshStandardMaterial({color: new THREE.Color(0xcccccc)});
+            let scene_material = new THREE.MeshStandardMaterial({color: new THREE.Color(0xefefef)});
+            let normal_material = new THREE.MeshNormalMaterial();
 
 
             this.backgroundScene_01 = colladaModel.scene.children[0];
 
             this.backgroundScene_01.children.forEach((obj, i) => {
+                obj.material = this.shaderMaterial;
                 // obj.material = scene_material;
-                console.log(i, obj);
-                obj.material = new THREE.MeshStandardMaterial({color: new THREE.Color(colors[i])});
+                // obj.material = new THREE.MeshStandardMaterial({color: new THREE.Color(colors[i])});
+                // obj.scale.z = 0.001;
+                this.blocks.push(obj);
             });
             this.backgroundScene_01.position.z = 0;
 
@@ -110,33 +142,66 @@ class SceneSetupBase {
 
 
             let box = new THREE.Box3().setFromObject(this.backgroundScene_01);
-            console.log('box-size', box.getSize());
             this.backgroundLoopParams.boxWidth = box.getSize().z;
             this.backgroundLoopParams.distance = this.backgroundLoopParams.offset + this.backgroundLoopParams.boxWidth + this.backgroundLoopParams.offset;
 
-            this.box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
-            this.scene.add(this.box_1);
 
+            // clone?
             this.backgroundScene_01_Clone = this.backgroundScene_01.clone();
             this.backgroundScene_01_Clone.position.z = this.backgroundLoopParams.boxWidth;
+            this.backgroundScene_01_Clone.children.forEach((obj, i) => {
+                obj.scale.z = 0.001;
+                this.blocksCloned.push(obj);
+            });
 
+
+            this.box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
             this.box_2 = new THREE.BoxHelper(this.backgroundScene_01_Clone, 0x0000ff);
+            this.scene.add(this.box_1);
             this.scene.add(this.box_2);
+
+            // scale after Cloning
+            this.blocks.forEach((obj, i) => {
+                obj.scale.z = 0.001;
+            });
 
             this.backgroundContainer.add(this.backgroundScene_01);
             this.backgroundContainer.add(this.backgroundScene_01_Clone);
             this.scene.add(this.backgroundContainer);
 
             this.initTimeline();
-            TweenMax.delayedCall(1, this.moveCam, null, this);
+
+            TweenMax.delayedCall(0, this.moveCam, null, this);
 
             this.initDAT();
+
+
+            this.initTLBlocks()
+
 
         });
 
 
         this.initLights();
 
+
+    }
+
+    initTLBlocks() {
+        this.tlBlocks = new TimelineMax({
+            paused: true,
+            onStartScope: this,
+            onUpdate: () => {
+            }
+        });
+
+        // TODO adjust order!
+        this.tlBlocks
+            .to([this.blocks[3].scale, this.blocksCloned[3].scale], 1, {z: 1, ease: Power2.easeOut}, '-=0.0')
+            .to([this.blocks[1].scale, this.blocksCloned[1].scale], .9, {z: 1}, '-=0.9')
+            .to([this.blocks[0].scale, this.blocksCloned[0].scale], .8, {z: 1}, '-=0.8')
+            .to([this.blocks[2].scale, this.blocksCloned[2].scale], .7, {z: 1}, '-=0.7')
+            .to([this.blocks[4].scale, this.blocksCloned[4].scale], .6, {z: 1}, '-=0.6')
     }
 
 
@@ -167,9 +232,9 @@ class SceneSetupBase {
             .call(this.doLoop, null, this);
 
 
-        TweenMax.delayedCall(1.5, () => {
-            this.tl.play();
-        }, null, this);
+        // TweenMax.delayedCall(1.5, () => {
+        //     this.tl.play();
+        // }, null, this);
 
 
     }
@@ -185,11 +250,14 @@ class SceneSetupBase {
 
 
     initLights() {
-        this.pointLight.position.set(0, 300, 0);
-        this.lightHelper = new THREE.PointLightHelper(this.pointLight);
+        let pointLight = new THREE.PointLight(0xffffff);
+        pointLight.position.set(0, 100, 0);
 
-        this.scene.add(this.pointLight);
-        this.scene.add(this.lightHelper);
+        let ambLight = new THREE.AmbientLight(0xcccccc); // soft white light
+        ambLight.intensity = .5;
+
+        this.scene.add(pointLight);
+        this.scene.add(ambLight);
     }
 
 
@@ -203,7 +271,6 @@ class SceneSetupBase {
 
     }
 
-
     render() {
 
         this.needsUpdate = this.clock.getDelta();
@@ -216,13 +283,55 @@ class SceneSetupBase {
         this.gui = new dat.GUI();
 
         this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
-        this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').onChange(this.updateParams.bind(this));
+        this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'togglePlay').onChange(this.togglePlay.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'fadeIn').onChange(this.fadeIn.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'playBlocks').onChange(this.playBlocks.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'reverseBlocks').onChange(this.reverseBlocks.bind(this));
+        this.gui.add(this.SETTINGS, 'boundingBox').onChange(this.checkBoundingBox.bind(this));
+    }
+
+    checkBoundingBox() {
+        if (this.SETTINGS.boundingBox) {
+            this.scene.add(this.box_1);
+            this.scene.add(this.box_2);
+        } else {
+            this.scene.remove(this.box_1);
+            this.scene.remove(this.box_2);
+        }
     }
 
     togglePlay() {
-        this.tl.isActive() ? this.tl.pause() : this.tl.play();
+        if (this.tl.isActive()) {
+            this.tl.pause();
+            this.SETTINGS.tlSpeed = 0;
+        } else {
+            this.tl.play();
+        }
     }
+
+    fadeIn() {
+        this.tl.play();
+
+        TweenMax.to(this.SETTINGS, 3, {
+            tlSpeed: 1,
+            ease: Sine.easeIn,
+            onUpdate: () => {
+                this.tl.timeScale(this.SETTINGS.tlSpeed);
+            }
+        })
+    }
+
+    playBlocks() {
+        this.tlBlocks.timeScale(1);
+        this.tlBlocks.play();
+    }
+
+    reverseBlocks() {
+        this.tlBlocks.timeScale(2);
+        this.tlBlocks.reverse();
+    }
+
 
     updateParams() {
         this.tl.timeScale(this.SETTINGS.tlSpeed);

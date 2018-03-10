@@ -84,8 +84,8 @@ class ShaderCheck {
         //here we create a custom shader with glslify
         //note USE_MAP is needed to get a 'uv' attribute
         this.shaderMaterial = new THREE.ShaderMaterial({
-            vertexShader: glslify('../shader/glslify/shadertoy_vert.glsl'),
-            fragmentShader: glslify('../shader/glslify/shadertoy_frag.glsl'),
+            vertexShader: glslify('../shader/glslify/matcap_vert.glsl'),
+            fragmentShader: glslify('../shader/glslify/matcap_frag.glsl'),
             uniforms: {
                 iChannel0: {type: 't', value: this.tex_1},
                 iChannel1: {type: 't', value: this.tex_2},
