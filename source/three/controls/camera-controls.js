@@ -1,4 +1,6 @@
-let THREE;
+import * as THREE from 'three';
+
+// let THREE;
 let _v3;
 let _xColumn;
 let _yColumn;
@@ -15,28 +17,34 @@ const STATE = {
 
 export default class CameraControls {
 
-    static install(libs) {
+    // static install(libs) {
+    //
+    //     THREE = libs.THREE;
+    //     _v3 = new THREE.Vector3();
+    //     _xColumn = new THREE.Vector3();
+    //     _yColumn = new THREE.Vector3();
+    //
+    // }
 
-        THREE = libs.THREE;
+    constructor(object, domElement) {
+
         _v3 = new THREE.Vector3();
         _xColumn = new THREE.Vector3();
         _yColumn = new THREE.Vector3();
 
-    }
-
-    constructor(object, domElement) {
-
         this.object = object;
 
-        this.minDistance = 0;
+        this.minDistance = 3;
         this.maxDistance = Infinity;
-        this.minPolarAngle = 0; // radians
-        this.maxPolarAngle = Math.PI; // radians
+        this.minPolarAngle = .2; // radians
+        this.maxPolarAngle = Math.PI * .45; // radians
         this.minAzimuthAngle = -Infinity; // radians
         this.maxAzimuthAngle = Infinity; // radians
         this.dampingFactor = 0.05;
         this.draggingDampingFactor = 0.25;
+        this.enableZoom = true;
         this.zoomSpeed = 1.0;
+
 
         this.domElement = domElement;
 
@@ -159,13 +167,16 @@ export default class CameraControls {
 
                 event.preventDefault();
 
-                if (event.deltaY < 0) {
+                if (scope.enableZoom) {
 
-                    dollyIn()
+                    if (event.deltaY < 0) {
 
-                } else if (event.deltaY > 0) {
+                        dollyIn()
 
-                    dollyOut();
+                    } else if (event.deltaY > 0) {
+
+                        dollyOut();
+                    }
 
                 }
 

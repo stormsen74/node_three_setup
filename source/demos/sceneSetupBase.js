@@ -6,11 +6,9 @@
 import * as THREE from 'three';
 import {Vector2} from "../math/vector2";
 
-var OrbitControls = require('./../three/controls/OrbitControls');
+import SceneCameraController from "./SceneController";
 
-import CameraControls from './../three/controls/camera-controls.js';
-
-CameraControls.install({THREE: THREE});
+// CameraControls.install({THREE: THREE});
 
 var gsap = require('gsap');
 
@@ -23,6 +21,7 @@ class SceneSetupBase {
     constructor() {
 
         console.log('1!')
+
 
         this.textureLoader = new THREE.TextureLoader();
 
@@ -45,11 +44,15 @@ class SceneSetupBase {
                 playBlocks: function () {
                 },
                 reverseBlocks: function () {
+                },
+                startHover: function () {
+                },
+                stopHover: function () {
                 }
             },
         };
 
-        this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
 
@@ -72,16 +75,10 @@ class SceneSetupBase {
         // this.controls.dampingFactor = 0.25;
         // this.controls.enableZoom = true;
 
-        this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
 
-        this.cameraControls.enableDamping = true;
-        this.cameraControls.dampingFactor = 0.05;
-        this.cameraControls.draggingDampingFactor = 0.25;
-        this.cameraControls.enableZoom = true;
-        this.cameraControls.minDistance = 3;
-        this.cameraControls.maxDistance = 100;
-        this.cameraControls.minPolarAngle = .2;
-        this.cameraControls.maxPolarAngle = Math.PI * .45;
+        this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
+        // this.sceneCameraController.doSome();
+
 
         let size = 100;
         let divisions = 10;
@@ -94,7 +91,7 @@ class SceneSetupBase {
             vertexShader: glslify('../shader/glslify/matcap_vert.glsl'),
             fragmentShader: glslify('../shader/glslify/matcap_frag.glsl'),
             uniforms: {
-                iChannel2: {type: 't', value: this.textureLoader.load('source/assets/matcap.jpg')},
+                iChannel2: {type: 't', value: this.textureLoader.load('source/assets/matcap_mod.jpg')},
                 iGlobalTime: {type: 'f', value: 0}
             },
             transparent: false,
@@ -106,7 +103,8 @@ class SceneSetupBase {
 
         this.cubeGeom = new THREE.BoxBufferGeometry(2, 1.5, 1.5);
         this.cube = new THREE.Mesh(this.cubeGeom, this.shaderMaterial);
-        this.cube.position.y = 1;
+        this.cube.position.y = .75;
+        this.cube.rotation.y = Math.PI * .5;
         this.scene.add(this.cube);
 
 
@@ -171,10 +169,7 @@ class SceneSetupBase {
 
             this.initTimeline();
 
-            TweenMax.delayedCall(0, this.moveCam, null, this);
-
             this.initDAT();
-
 
             this.initTLBlocks()
 
@@ -198,10 +193,10 @@ class SceneSetupBase {
         // TODO adjust order!
         this.tlBlocks
             .to([this.blocks[3].scale, this.blocksCloned[3].scale], 1, {z: 1, ease: Power2.easeOut}, '-=0.0')
-            .to([this.blocks[1].scale, this.blocksCloned[1].scale], .9, {z: 1}, '-=0.9')
-            .to([this.blocks[0].scale, this.blocksCloned[0].scale], .8, {z: 1}, '-=0.8')
-            .to([this.blocks[2].scale, this.blocksCloned[2].scale], .7, {z: 1}, '-=0.7')
-            .to([this.blocks[4].scale, this.blocksCloned[4].scale], .6, {z: 1}, '-=0.6')
+            .to([this.blocks[1].scale, this.blocksCloned[1].scale], .9, {z: 1, ease: Power2.easeOut}, '-=0.9')
+            .to([this.blocks[0].scale, this.blocksCloned[0].scale], .8, {z: 1, ease: Power2.easeOut}, '-=0.8')
+            .to([this.blocks[2].scale, this.blocksCloned[2].scale], .7, {z: 1, ease: Power2.easeOut}, '-=0.7')
+            .to([this.blocks[4].scale, this.blocksCloned[4].scale], .6, {z: 1, ease: Power2.easeOut}, '-=0.6')
     }
 
 
@@ -226,9 +221,15 @@ class SceneSetupBase {
 
         this.tl
             .set(this.backgroundScene_01_Clone.position, {z: this.backgroundLoopParams.boxWidth}, '-=0.0')
-            .to(this.backgroundContainer.position, 5.0, {z: -this.backgroundLoopParams.boxWidth, ease: Linear.easeNone}, '-=0.0')
+            .to(this.backgroundContainer.position, 5.0, {
+                z: -this.backgroundLoopParams.boxWidth,
+                ease: Linear.easeNone
+            }, '-=0.0')
             .set(this.backgroundScene_01.position, {z: 2 * this.backgroundLoopParams.boxWidth}, '-=0.0')
-            .to(this.backgroundContainer.position, 5.0, {z: -2 * this.backgroundLoopParams.boxWidth, ease: Linear.easeNone}, '-=0.0')
+            .to(this.backgroundContainer.position, 5.0, {
+                z: -2 * this.backgroundLoopParams.boxWidth,
+                ease: Linear.easeNone
+            }, '-=0.0')
             .call(this.doLoop, null, this);
 
 
@@ -237,15 +238,6 @@ class SceneSetupBase {
         // }, null, this);
 
 
-    }
-
-
-    moveCam() {
-        this.cameraControls.rotate(
-            -90 * THREE.Math.DEG2RAD,
-            10 * THREE.Math.DEG2RAD,
-            true
-        )
     }
 
 
@@ -273,8 +265,7 @@ class SceneSetupBase {
 
     render() {
 
-        this.needsUpdate = this.clock.getDelta();
-        this.cameraControls.update(this.needsUpdate);
+        this.sceneCameraController.update();
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -288,6 +279,8 @@ class SceneSetupBase {
         this.gui.add(this.SETTINGS.METHODS, 'fadeIn').onChange(this.fadeIn.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'playBlocks').onChange(this.playBlocks.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'reverseBlocks').onChange(this.reverseBlocks.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
         this.gui.add(this.SETTINGS, 'boundingBox').onChange(this.checkBoundingBox.bind(this));
     }
 
@@ -330,6 +323,14 @@ class SceneSetupBase {
     reverseBlocks() {
         this.tlBlocks.timeScale(2);
         this.tlBlocks.reverse();
+    }
+
+    startHover() {
+        this.sceneCameraController.startHover();
+    }
+
+    stopHover() {
+        this.sceneCameraController.stopHover();
     }
 
 

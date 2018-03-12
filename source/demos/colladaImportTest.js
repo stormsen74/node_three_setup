@@ -10,7 +10,7 @@ var OrbitControls = require('./../three/controls/OrbitControls');
 
 import CameraControls from './../three/controls/camera-controls.js';
 
-CameraControls.install({THREE: THREE});
+// CameraControls.install({THREE: THREE});
 
 var gsap = require('gsap');
 
@@ -41,7 +41,7 @@ class ColladaImportTest {
             pointer: {x: 0, y: 0}
         };
 
-        this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
 
@@ -73,7 +73,7 @@ class ColladaImportTest {
         this.cameraControls.draggingDampingFactor = 0.25;
         this.cameraControls.enableZoom = true;
         this.cameraControls.minDistance = 3;
-        this.cameraControls.maxDistance = 30;
+        this.cameraControls.maxDistance = Infinity;
         this.cameraControls.minPolarAngle = .2;
         this.cameraControls.maxPolarAngle = Math.PI * .45;
 
@@ -86,40 +86,9 @@ class ColladaImportTest {
 
         const colladaLoader = new THREE.ColladaLoader();
 
-        // colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_01.DAE', colladaModel => {
-        //     console.log(colladaModel);
-        //
-        //     let group_1 = colladaModel.scene.children[0];
-        //     let group_2 = colladaModel.scene.children[1];
-        //
-        //     let material_1 = new THREE.MeshStandardMaterial({
-        //             color: new THREE.Color(0xff0000)
-        //         }
-        //     );
-        //
-        //     let material_2 = new THREE.MeshStandardMaterial({
-        //             color: new THREE.Color(0x0000ff)
-        //         }
-        //     );
-        //
-        //     group_1.children.forEach(mesh => {
-        //         mesh.material = material_1;
-        //     });
-        //
-        //     group_2.children.forEach(mesh => {
-        //         mesh.material = material_2;
-        //     });
-        //
-        //
-        //     this.scene.add(group_1);
-        //     this.scene.add(group_2);
-        //
-        //     TweenMax.delayedCall(1, this.moveCam, [this])
-        //
-        // });
 
         this.backgroundContainer = new THREE.Object3D();
-        colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups_pivotcenter.DAE', colladaModel => {
+        colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups.DAE', colladaModel => {
             console.log(colladaModel);
 
 
@@ -132,8 +101,8 @@ class ColladaImportTest {
                 console.log(i)
                 obj.material = material_1;
             });
-            this.backgroundScene_01.position.z = 0;
-            console.log(this.backgroundScene_01.children[0])
+            // this.backgroundScene_01.position.z = 0;
+            // console.log(this.backgroundScene_01.children[0])
 
             // this.backgroundScene_01.children[0].position.z = 300
 
@@ -151,10 +120,9 @@ class ColladaImportTest {
             this.backgroundContainer.add(box_2);
 
             this.backgroundContainer.add(this.backgroundScene_01);
-            this.backgroundContainer.add(clone);
+            // this.backgroundContainer.add(clone);
             this.scene.add(this.backgroundContainer);
 
-            TweenMax.delayedCall(1, this.moveCam, [this])
 
         });
 
@@ -164,14 +132,6 @@ class ColladaImportTest {
 
     }
 
-
-    moveCam(scope) {
-        scope.cameraControls.rotate(
-            -90 * THREE.Math.DEG2RAD,
-            10 * THREE.Math.DEG2RAD,
-            true
-        )
-    }
 
 
     initLights() {
