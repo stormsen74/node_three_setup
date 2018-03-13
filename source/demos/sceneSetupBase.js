@@ -52,7 +52,7 @@ class SceneSetupBase {
             },
         };
 
-        this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
 

@@ -82,14 +82,14 @@ class ColladaImportTest {
 
 
         this.backgroundContainer = new THREE.Object3D();
-        colladaLoader.load('/source/assets/smart/renamed.DAE', colladaModel => {
+        colladaLoader.load('/source/assets/smart/Smart_Cities_Main_Scene_animationgroups.DAE', colladaModel => {
             console.log(colladaModel);
 
 
             let material_1 = new THREE.MeshStandardMaterial({color: new THREE.Color(0xff0000)});
 
 
-            this.backgroundScene_01 = colladaModel.scene.children[1];
+            this.backgroundScene_01 = colladaModel.scene.children[0];
             this.backgroundScene_01.material = material_1;
             this.backgroundScene_01.children.forEach((obj, i) => {
                 let name = obj.name;

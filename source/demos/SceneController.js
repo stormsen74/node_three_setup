@@ -15,17 +15,35 @@ class SceneCameraController {
         this.vTargetAnimation = new THREE.Vector3();
 
 
-        TweenMax.delayedCall(.5, this.doSome, null, this);
+        TweenMax.delayedCall(.5, this.doOne, null, this);
+
         // TweenMax.delayedCall(1.5, this.startHover, null, this);
     }
 
-    doSome() {
+    degToRad(deg) {
+        return deg * THREE.Math.DEG2RAD;
+    }
+
+    doOne() {
+        console.log(this.cameraControls)
         this.cameraControls.rotate(
-            -90 * THREE.Math.DEG2RAD,
-            10 * THREE.Math.DEG2RAD,
+            this.degToRad(-45),
+            this.degToRad(0),
+            true
+        )
+
+        TweenMax.delayedCall(1, this.doTwo, null, this);
+    }
+
+    doTwo() {
+        console.log(this.cameraControls)
+        this.cameraControls.rotateTo(
+            this.degToRad(-75),
+            this.degToRad(90),
             true
         )
     }
+
 
     startHover() {
         // TODO => Timeline

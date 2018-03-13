@@ -21,7 +21,7 @@ import SceneSetupBase from './demos/sceneSetupBase';
 
 const init = () => {
 
-    const demo = new ColladaImport();
+    const demo = new SceneSetupBase();
 
     const update = () => {
         raf(update);
