@@ -94,7 +94,7 @@ class ColladaImportTest {
             this.backgroundScene_01.children.forEach((obj, i) => {
                 let name = obj.name;
                 let index_c = name.charAt(2) + name.charAt(3);
-                let index_r = name.charAt(5) + name.charAt(6);
+                let index_r = name.charAt(5) + name.charAt();
                 console.log(i, obj, index_r, index_c);
                 obj.material = material_1;
             });
