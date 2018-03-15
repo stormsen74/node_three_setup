@@ -61,12 +61,6 @@ class ColladaImportTest {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.screen.appendChild(this.renderer.domElement);
 
-
-        // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.enableDamping = true;
-        // this.controls.dampingFactor = 0.25;
-        // this.controls.enableZoom = true;
-
         this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
         this.cameraControls.enableDamping = true;
         this.cameraControls.dampingFactor = 0.05;
@@ -98,23 +92,22 @@ class ColladaImportTest {
             this.backgroundScene_01 = colladaModel.scene.children[0];
             this.backgroundScene_01.material = material_1;
             this.backgroundScene_01.children.forEach((obj, i) => {
-                console.log(i)
+                let name = obj.name;
+                let index_c = name.charAt(2) + name.charAt(3);
+                let index_r = name.charAt(5) + name.charAt();
+                console.log(i, obj, index_r, index_c);
                 obj.material = material_1;
             });
-            // this.backgroundScene_01.position.z = 0;
-            // console.log(this.backgroundScene_01.children[0])
 
-            // this.backgroundScene_01.children[0].position.z = 300
-
-
-            let box = new THREE.Box3().setFromObject(this.backgroundScene_01);
-            console.log(box.min, box.max, box.size());
+            let boundingBox = new THREE.Box3().setFromObject(this.backgroundScene_01);
+            console.log(boundingBox.size());
 
             let box_1 = new THREE.BoxHelper(this.backgroundScene_01, 0xff0000);
             this.backgroundContainer.add(box_1);
 
             let clone = this.backgroundScene_01.clone();
             clone.position.z = 200;
+
 
             let box_2 = new THREE.BoxHelper(clone, 0x0000ff);
             this.backgroundContainer.add(box_2);
@@ -131,7 +124,6 @@ class ColladaImportTest {
         this.initListener();
 
     }
-
 
 
     initLights() {
