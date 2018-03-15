@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset><contributor><author></author><authoring_tool>FBX COLLADA exporter</authoring_tool><comments></comments></contributor><created>2018-03-13T11:29:58Z</created><keywords></keywords><modified>2018-03-13T11:29:58Z</modified><revision></revision><subject></subject><title></title><unit meter="1.000000" name="centimeter"></unit><up_axis>Y_UP</up_axis></asset>
+  <library_visual_scenes>
+    <visual_scene id="SC_Camera_test_01" name="SC_Camera_test_01">
+      <node name="PhysCamera003" id="PhysCamera003" sid="PhysCamera003"><matrix sid="matrix">0.917472 0.000000 0.397800 15.499288 0.000000 1.000000 -0.000000 1.421133 -0.397800 0.000000 0.917472 19.136786 0.000000 0.000000 0.000000 1.000000</matrix><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
+      <node name="PhysCamera003.Target" id="PhysCamera003.Target" sid="PhysCamera003.Target"><matrix sid="matrix">0.999866 0.000000 0.016350 11.540092 0.000000 1.000000 -0.000000 1.421134 -0.016350 0.000000 0.999866 10.005424 0.000000 0.000000 0.000000 1.000000</matrix><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
+      <extra><technique profile="MAX3D"><frame_rate>30.000000</frame_rate></technique><technique profile="FCOLLADA"><start_time>0.000000</start_time><end_time>3.333333</end_time></technique></extra>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#SC_Camera_test_01"></instance_visual_scene>
+  </scene>
+</COLLADA>
