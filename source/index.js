@@ -12,6 +12,7 @@ import ShaderCheck from './demos/shaderCheck';
 import Polyplane from './demos/polyplane';
 import ColladaImport from './demos/colladaImportTest.js';
 import SceneSetupBase from './demos/sceneSetupBase';
+import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -21,7 +22,7 @@ import SceneSetupBase from './demos/sceneSetupBase';
 
 const init = () => {
 
-    const demo = new SceneSetupBase();
+    const demo = new LandscapeSetupBase();
 
     const update = () => {
         raf(update);
