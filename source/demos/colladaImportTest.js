@@ -8,7 +8,7 @@ import {Vector2} from "../math/vector2";
 
 var OrbitControls = require('./../three/controls/OrbitControls');
 
-import CameraControls from './../three/controls/camera-controls.js';
+import CameraControls from 'demos/cameraControls';
 
 // CameraControls.install({THREE: THREE});
 

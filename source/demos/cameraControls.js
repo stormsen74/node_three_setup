@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-// let THREE;
-let _v3;
-let _xColumn;
-let _yColumn;
+let _v3 = new THREE.Vector3();
+let _xColumn = new THREE.Vector3();
+let _yColumn = new THREE.Vector3();
 const EPSILON = 0.0001;
+
 const STATE = {
     NONE: -1,
     ROTATE: 0,
@@ -15,22 +15,10 @@ const STATE = {
     TOUCH_PAN: 5
 };
 
-export default class CameraControls {
+class CameraControls {
 
-    // static install(libs) {
-    //
-    //     THREE = libs.THREE;
-    //     _v3 = new THREE.Vector3();
-    //     _xColumn = new THREE.Vector3();
-    //     _yColumn = new THREE.Vector3();
-    //
-    // }
 
     constructor(object, domElement) {
-
-        _v3 = new THREE.Vector3();
-        _xColumn = new THREE.Vector3();
-        _yColumn = new THREE.Vector3();
 
         this.object = object;
 
@@ -44,7 +32,6 @@ export default class CameraControls {
         this.draggingDampingFactor = 0.25;
         this.enableZoom = true;
         this.zoomSpeed = 1.0;
-
 
         this.domElement = domElement;
 
@@ -162,21 +149,17 @@ export default class CameraControls {
 
             }
 
-
             function onMouseWheel(event) {
 
                 event.preventDefault();
 
-                if (scope.enableZoom) {
+                if (event.deltaY < 0) {
 
-                    if (event.deltaY < 0) {
+                    dollyIn()
 
-                        dollyIn()
+                } else if (event.deltaY > 0) {
 
-                    } else if (event.deltaY > 0) {
-
-                        dollyOut();
-                    }
+                    dollyOut();
 
                 }
 
@@ -256,17 +239,15 @@ export default class CameraControls {
 
                         const dx = x - event.touches[1].pageX;
                         const dy = y - event.touches[1].pageY;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        const touchDollyStrength = 0.1;
+                        const distance = Math.sqrt(dx * dx + dy * dy) * touchDollyStrength;
                         const dollyDelta = dollyStart.y - distance;
 
                         if (dollyDelta > 0) {
-
-                            dollyOut();
-
+                            dollyOut(0.2);
                         } else if (dollyDelta < 0) {
-
-                            dollyIn();
-
+                            dollyIn(0.2);
                         }
 
                         dollyStart.set(0, distance);
@@ -299,17 +280,17 @@ export default class CameraControls {
 
             }
 
-            function dollyIn() {
+            function dollyIn(factor = 1.0) {
 
-                const zoomScale = Math.pow(0.95, scope.zoomSpeed);
-                scope.dolly(scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius);
+                const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
+                scope.dolly(scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius, true);
 
             }
 
-            function dollyOut() {
+            function dollyOut(factor = 1.0) {
 
-                const zoomScale = Math.pow(0.95, scope.zoomSpeed);
-                scope.dolly(scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius);
+                const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
+                scope.dolly(scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius, true);
 
             }
 
@@ -353,9 +334,7 @@ export default class CameraControls {
     }
 
     dolly(distance, enableTransition) {
-
         this.dollyTo(this._sphericalEnd.radius + distance, enableTransition);
-
     }
 
     dollyTo(distance, enableTransition) {
@@ -439,13 +418,13 @@ export default class CameraControls {
 
     update() {
 
-        console.log(this._targetEnd, this._spherical)
+        // console.log(this._targetEnd, this._spherical)
+
         const dampingFactor = this.dampingFactor;
         const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
         const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
         const deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this._target);
-        delta = 16 / 1000;
 
         if (
             Math.abs(deltaTheta) > EPSILON ||
@@ -480,6 +459,15 @@ export default class CameraControls {
         const needsUpdate = this._needsUpdate;
         this._needsUpdate = false;
 
-        return needsUpdate
+        return needsUpdate;
+
     }
+
 }
+
+
+// ——————————————————————————————————————————————————
+// Exports
+// ——————————————————————————————————————————————————
+
+export default CameraControls;

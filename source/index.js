@@ -9,9 +9,9 @@ import CV3 from './demos/checkVector3';
 import SphericalLight from './demos/sphericalLight';
 import Flow3 from './demos/flow3';
 import ShaderCheck from './demos/shaderCheck';
-import Polyplane from './demos/polyplane';
-import ColladaImport from './demos/colladaImportTest.js';
-import SceneSetupBase from './demos/sceneSetupBase';
+// import Polyplane from './demos/polyplane';
+// import ColladaImport from './demos/colladaImportTest.js';
+// import SceneSetupBase from './demos/sceneSetupBase';
 import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 // https://github.com/josdirksen

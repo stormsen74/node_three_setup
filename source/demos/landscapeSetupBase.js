@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import {Vector2} from "../math/vector2";
 
-import SceneCameraController from "./SceneController";
+import SceneCameraController from "./SceneCameraController";
 
 // CameraControls.install({THREE: THREE});
 
@@ -35,15 +35,11 @@ class LandscapeSetupBase {
         this.SETTINGS = {
             tlProgress: 0.0,
             tlSpeed: 0,
-            boundingBox: true,
+            zoom: 1,
             METHODS: {
-                togglePlay: function () {
+                zoom: function () {
                 },
-                fadeIn: function () {
-                },
-                playBlocks: function () {
-                },
-                reverseBlocks: function () {
+                setCameraToInitalState: function () {
                 },
                 startHover: function () {
                 },
@@ -52,9 +48,9 @@ class LandscapeSetupBase {
             },
         };
 
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-        this.camera.position.y = 1.7;
-        this.camera.position.z = 6;
+        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera.position.y = .8;
+        this.camera.position.z = 5.2;
 
         this.scene = new THREE.Scene();
 
@@ -70,21 +66,12 @@ class LandscapeSetupBase {
         this.screen.appendChild(this.renderer.domElement);
 
 
-        // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.enableDamping = true;
-        // this.controls.dampingFactor = 0.25;
-        // this.controls.enableZoom = true;
-
-
         this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
         // this.sceneCameraController.doSome();
 
 
-        let size = 100;
-        let divisions = 10;
-
-        let gridHelper = new THREE.GridHelper(size, divisions);
-        this.scene.add(gridHelper);
+        this.scene.add(new THREE.GridHelper(10, 10));
+        this.scene.add(new THREE.AxesHelper(1));
 
 
         this.shaderMaterial = new THREE.ShaderMaterial({
@@ -101,13 +88,7 @@ class LandscapeSetupBase {
         });
 
 
-
-
-        this.cubeGeom = new THREE.BoxBufferGeometry(2, 1.5, 1.5);
-        this.cube = new THREE.Mesh(this.cubeGeom, this.shaderMaterial);
-        this.cube.position.y = .75;
-        this.cube.rotation.y = Math.PI * .5;
-        this.scene.add(this.cube);
+        this.scene.add(new THREE.AxesHelper(1));
 
 
         this.backgroundContainer = new THREE.Object3D();
@@ -128,7 +109,8 @@ class LandscapeSetupBase {
             let normal_material = new THREE.MeshNormalMaterial();
             // const landscapeMaterial_1 = new THREE.MeshStandardMaterial({color: new THREE.Color(0xcc0000)});
             const landscapeMaterial_1 = new THREE.MeshBasicMaterial({
-                map: texLoader.load('/source/assets/smart/SC_Landscape_Lightmap.png')});
+                map: texLoader.load('/source/assets/smart/SC_Landscape_Lightmap.png')
+            });
 
 
             this.landscapeMesh_01 = colladaModel.scene.children[0].children[0];
@@ -149,7 +131,6 @@ class LandscapeSetupBase {
             this.initDAT();
 
 
-
         });
 
 
@@ -159,13 +140,9 @@ class LandscapeSetupBase {
     }
 
 
-
     degToRad(deg) {
         return deg * 0.0174533;
     }
-
-
-
 
 
     initLights() {
@@ -191,7 +168,6 @@ class LandscapeSetupBase {
     }
 
     render() {
-
         this.sceneCameraController.update();
         this.renderer.render(this.scene, this.camera);
     }
@@ -202,33 +178,21 @@ class LandscapeSetupBase {
 
         this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
         this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
-        this.gui.add(this.SETTINGS.METHODS, 'togglePlay').onChange(this.togglePlay.bind(this));
-        this.gui.add(this.SETTINGS.METHODS, 'fadeIn').onChange(this.fadeIn.bind(this));
-        this.gui.add(this.SETTINGS.METHODS, 'playBlocks').onChange(this.playBlocks.bind(this));
-        this.gui.add(this.SETTINGS.METHODS, 'reverseBlocks').onChange(this.reverseBlocks.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'zoom').onChange(this.zoom.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'setCameraToInitalState').onChange(this.setCameraToInitalState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
-        this.gui.add(this.SETTINGS, 'boundingBox').onChange(this.checkBoundingBox.bind(this));
     }
 
-    checkBoundingBox() {
-        if (this.SETTINGS.boundingBox) {
-            this.scene.add(this.box_1);
-            this.scene.add(this.box_2);
-        } else {
-            this.scene.remove(this.box_1);
-            this.scene.remove(this.box_2);
-        }
+
+    zoom() {
+        this.sceneCameraController.zoom();
     }
 
-    togglePlay() {
-        if (this.tl.isActive()) {
-            this.tl.pause();
-            this.SETTINGS.tlSpeed = 0;
-        } else {
-            this.tl.play();
-        }
+    setCameraToInitalState() {
+        this.sceneCameraController.setFromState();
     }
+
 
     fadeIn() {
         this.tl.play();
@@ -242,15 +206,6 @@ class LandscapeSetupBase {
         })
     }
 
-    playBlocks() {
-        this.tlBlocks.timeScale(1);
-        this.tlBlocks.play();
-    }
-
-    reverseBlocks() {
-        this.tlBlocks.timeScale(2);
-        this.tlBlocks.reverse();
-    }
 
     startHover() {
         this.sceneCameraController.startHover();
@@ -262,7 +217,6 @@ class LandscapeSetupBase {
 
 
     updateParams() {
-        this.tl.timeScale(this.SETTINGS.tlSpeed);
     }
 
 

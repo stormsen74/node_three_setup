@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import {Vector2} from "../math/vector2";
 
-import SceneCameraController from "./SceneController";
+import SceneCameraController from "./SceneCameraController";
 
 // CameraControls.install({THREE: THREE});
 
