@@ -8,8 +8,6 @@ import {Vector2} from "../math/vector2";
 
 import SceneCameraController from "./SceneCameraController";
 
-// CameraControls.install({THREE: THREE});
-
 var gsap = require('gsap');
 
 var ColladaLoader = require('../three/loader/colladaLoader');
@@ -21,7 +19,6 @@ class LandscapeSetupBase {
     constructor() {
 
         console.log('1!')
-
 
         this.textureLoader = new THREE.TextureLoader();
 
@@ -36,10 +33,11 @@ class LandscapeSetupBase {
             tlProgress: 0.0,
             tlSpeed: 0,
             zoom: 1,
+            meshScaleZ:.1,
             METHODS: {
                 zoom: function () {
                 },
-                setCameraToInitalState: function () {
+                setInitialState: function () {
                 },
                 startHover: function () {
                 },
@@ -107,7 +105,6 @@ class LandscapeSetupBase {
             let colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0x00ffff];
             let scene_material = new THREE.MeshStandardMaterial({color: new THREE.Color(0xefefef)});
             let normal_material = new THREE.MeshNormalMaterial();
-            // const landscapeMaterial_1 = new THREE.MeshStandardMaterial({color: new THREE.Color(0xcc0000)});
             const landscapeMaterial_1 = new THREE.MeshBasicMaterial({
                 map: texLoader.load('/source/assets/smart/SC_Landscape_Lightmap.png')
             });
@@ -122,7 +119,7 @@ class LandscapeSetupBase {
             this.landscapeMesh_01.position.y = 0; // 4.8 y
             this.landscapeMesh_01.position.x = 80; // z
             this.landscapeMesh_01.scale.x = .89;
-            // this.landscapeMesh_01.scale.z = .1;
+            this.landscapeMesh_01.scale.z = .1;
             this.landscapeMesh_01.material = landscapeMaterial_1;
             this.backgroundContainer.add(this.landscapeMesh_01);
             this.scene.add(this.backgroundContainer);
@@ -152,8 +149,8 @@ class LandscapeSetupBase {
         let ambLight = new THREE.AmbientLight(0xcccccc); // soft white light
         ambLight.intensity = .5;
 
-        // this.scene.add(pointLight);
-        // this.scene.add(ambLight);
+        this.scene.add(pointLight);
+        this.scene.add(ambLight);
     }
 
 
@@ -176,35 +173,24 @@ class LandscapeSetupBase {
     initDAT() {
         this.gui = new dat.GUI();
 
-        this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
-        this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
+        // this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
+        // this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'setInitialState').onChange(this.setInitialState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'zoom').onChange(this.zoom.bind(this));
-        this.gui.add(this.SETTINGS.METHODS, 'setCameraToInitalState').onChange(this.setCameraToInitalState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
+        this.gui.add(this.SETTINGS, 'meshScaleZ').min(-.5).max(2).step(.01).name('meshScaleZ').listen().onChange(this.updateMeshScale.bind(this));
     }
 
 
     zoom() {
-        this.sceneCameraController.zoom();
+        this.sceneCameraController.zoomTo(3);
     }
 
-    setCameraToInitalState() {
+    setInitialState() {
         this.sceneCameraController.setFromState();
     }
 
-
-    fadeIn() {
-        this.tl.play();
-
-        TweenMax.to(this.SETTINGS, 3, {
-            tlSpeed: 1,
-            ease: Sine.easeIn,
-            onUpdate: () => {
-                this.tl.timeScale(this.SETTINGS.tlSpeed);
-            }
-        })
-    }
 
 
     startHover() {
@@ -216,7 +202,8 @@ class LandscapeSetupBase {
     }
 
 
-    updateParams() {
+    updateMeshScale () {
+        this.landscapeMesh_01.scale.z = this.SETTINGS.meshScaleZ;
     }
 
 

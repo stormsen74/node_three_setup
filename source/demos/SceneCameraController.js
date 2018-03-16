@@ -13,6 +13,11 @@ const degToRad = (deg) => {
 class SceneCameraController {
 
     constructor(_camera, _domElement) {
+
+        this.cameraControls = new CameraControls(_camera, _domElement);
+        this.tempTargetEnd = new THREE.Vector3();
+        this.vTargetAnimation = new THREE.Vector3();
+
         this.camStates = {
             initialState: {
                 targetX: 0.13482722236583938,
@@ -38,28 +43,18 @@ class SceneCameraController {
                 azimuthAngle: 1.1272773639351614,
                 zoom: 16.261616938713104
             }
-        }
+        };
 
 
-        this.clock = new THREE.Clock();
-        this.cameraControls = new CameraControls(_camera, _domElement);
-
-
-        this.tempTargetEnd = new THREE.Vector3();
-        this.vTargetAnimation = new THREE.Vector3();
-
-        // log Camera Position
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
         Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01));
         Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02));
 
-
-        // TweenMax.delayedCall(1, this.doTwo, null, this);
-        //
-        // // TweenMax.delayedCall(1.5, this.startHover, null, this);
+        // TweenMax.delayedCall(1.5, this.startHover, null, this);
 
     }
 
+        // log Camera Position
     logCamPosition() {
         console.log(
             "======== camera properties ======== \n" +
@@ -71,12 +66,6 @@ class SceneCameraController {
             "zoom: " + this.cameraControls._spherical.radius + " \n" +
             "======== camera properties ======== \n"
         );
-        // console.log('targetX:', this.cameraControls._targetEnd.x);
-        // console.log('targetY:', this.cameraControls._targetEnd.y);
-        // console.log('targetZ:', this.cameraControls._targetEnd.z);
-        // console.log('polarAngle:', this.cameraControls._spherical.phi);
-        // console.log('azimutAngle:', this.cameraControls._spherical.theta);
-        // console.log('zoom:', this.cameraControls._spherical.radius);
     }
 
     // x: 0.13482722236583938, y: 0.1548841882472296, z: 0.39605143627131145} Spherical {radius: 3.674077220462012, phi: 1.3595968206712132, theta: -1.3075782956578286}
@@ -84,15 +73,19 @@ class SceneCameraController {
     // theta => azimut angle
 
     // TODO
-    // define state Objects
+    // refine state Objects
     // shortcut copy cam position
     // shortcuts goto Position
     // tween cam (gsap) ...
     // events => hammer.js
+    // debug camera
+    // camera helper
 
 
     setFromState(state = this.camStates.initialState) {
-        console.log('setFromState', state)
+
+        console.log('setFromState', state);
+
         this.cameraControls.moveTo(
             state.targetX,
             state.targetY,
@@ -111,18 +104,8 @@ class SceneCameraController {
     }
 
 
-    doTwo() {
-        console.log(this.cameraControls)
-        this.cameraControls.rotateTo(
-            degToRad(-90),
-            degToRad(90),
-            true
-        )
-    }
-
-
-    zoom() {
-        this.cameraControls.dollyTo(10, true)
+    zoomTo(zoomlLevel = 10) {
+        this.cameraControls.dollyTo(zoomlLevel, true)
     }
 
 
@@ -168,7 +151,6 @@ class SceneCameraController {
     }
 
     update() {
-        // this.needsUpdate = this.clock.getDelta();
         this.cameraControls.update();
     }
 }

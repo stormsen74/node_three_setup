@@ -8,7 +8,6 @@ import {Vector2} from "../math/vector2";
 
 import SceneCameraController from "./SceneCameraController";
 
-// CameraControls.install({THREE: THREE});
 
 var gsap = require('gsap');
 
@@ -56,8 +55,9 @@ class SceneSetupBase {
         this.camera.position.y = 1.7;
         this.camera.position.z = 6;
 
-        this.scene = new THREE.Scene();
+        this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
 
+        this.scene = new THREE.Scene();
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -69,20 +69,8 @@ class SceneSetupBase {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.screen.appendChild(this.renderer.domElement);
 
-
-        // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.enableDamping = true;
-        // this.controls.dampingFactor = 0.25;
-        // this.controls.enableZoom = true;
-
-
-        this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
-        // this.sceneCameraController.doSome();
-
-
         let size = 100;
         let divisions = 10;
-
         let gridHelper = new THREE.GridHelper(size, divisions);
         this.scene.add(gridHelper);
 

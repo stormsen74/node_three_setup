@@ -8,7 +8,7 @@ import {Vector2} from "../math/vector2";
 
 var OrbitControls = require('./../three/controls/OrbitControls');
 
-import CameraControls from 'demos/cameraControls';
+import SceneCameraController from "./SceneCameraController";
 
 // CameraControls.install({THREE: THREE});
 
@@ -41,15 +41,11 @@ class ColladaImportTest {
             pointer: {x: 0, y: 0}
         };
 
-        this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
-        this.camera.position.y = 1.7;
-        this.camera.position.z = 6;
 
 
         this.pointLight = new THREE.PointLight(0xa8d1e2);
 
         this.scene = new THREE.Scene();
-
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -61,15 +57,12 @@ class ColladaImportTest {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.screen.appendChild(this.renderer.domElement);
 
-        this.cameraControls = new CameraControls(this.camera, this.renderer.domElement);
-        this.cameraControls.enableDamping = true;
-        this.cameraControls.dampingFactor = 0.05;
-        this.cameraControls.draggingDampingFactor = 0.25;
-        this.cameraControls.enableZoom = true;
-        this.cameraControls.minDistance = 3;
-        this.cameraControls.maxDistance = Infinity;
-        this.cameraControls.minPolarAngle = .2;
-        this.cameraControls.maxPolarAngle = Math.PI * .45;
+
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera.position.y = 1.7;
+        this.camera.position.z = 6;
+
+        this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
 
         let size = 100;
         let divisions = 10;
@@ -193,23 +186,14 @@ class ColladaImportTest {
     }
 
     update() {
-        // this.delta = this.clock.getDelta();
-        // this.elapsed = this.clock.getElapsedTime();
-        // this.needsUpdate = this.cameraControls.update(this.delta);
 
-        // this.controls.update();
     }
 
     render() {
 
-        // this.delta = this.clock.getDelta();
-        // console.log(this.cameraControls._spherical)
-        // this.delta += .01
-        this.needsUpdate = this.clock.getDelta();
-        this.cameraControls.update(this.needsUpdate);
-
-
+        this.sceneCameraController.update();
         this.renderer.render(this.scene, this.camera);
+
     }
 
 
