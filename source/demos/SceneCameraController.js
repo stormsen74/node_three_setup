@@ -18,6 +18,7 @@ class SceneCameraController {
         this.tempTargetEnd = new THREE.Vector3();
         this.vTargetAnimation = new THREE.Vector3();
 
+        this.currentState = null;
         this.camStates = {
             initialState: {
                 targetX: 0.13482722236583938,
@@ -42,25 +43,34 @@ class SceneCameraController {
                 polarAngle: -1.92381973288244,
                 azimuthAngle: 1.1272773639351614,
                 zoom: 16.261616938713104
+            },
+            state_03: {
+                targetX: 0.13482722236583938,
+                targetY: 0.1548841882472296,
+                targetZ: 0.1548841882472296,
+                polarAngle: -1.2264190855131918,
+                azimuthAngle: 1.1272773639351616,
+                zoom: 16.261616938713104
             }
         };
 
 
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
-        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01));
-        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02));
-
-        // TweenMax.delayedCall(1.5, this.startHover, null, this);
+        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01, true));
+        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02, false));
+        Mousetrap.bind('shift+3', this.setFromState.bind(this, this.camStates.state_03, true));
 
     }
 
-        // log Camera Position
+    // log Camera Position
     logCamPosition() {
+        // theta => polar angle
+        // phi => azimuth angle
         console.log(
             "======== camera properties ======== \n" +
             "targetX: " + this.cameraControls._targetEnd.x + ", \n" +
             "targetY: " + this.cameraControls._targetEnd.y + ", \n" +
-            "targetZ: " + this.cameraControls._targetEnd.y + ", \n" +
+            "targetZ: " + this.cameraControls._targetEnd.z + ", \n" +
             "polarAngle: " + this.cameraControls._spherical.theta + ", \n" +
             "azimuthAngle: " + this.cameraControls._spherical.phi + ", \n" +
             "zoom: " + this.cameraControls._spherical.radius + " \n" +
@@ -68,38 +78,79 @@ class SceneCameraController {
         );
     }
 
-    // x: 0.13482722236583938, y: 0.1548841882472296, z: 0.39605143627131145} Spherical {radius: 3.674077220462012, phi: 1.3595968206712132, theta: -1.3075782956578286}
-    // phi => polar angle
-    // theta => azimut angle
 
     // TODO
     // refine state Objects
     // shortcut copy cam position
     // shortcuts goto Position
+    // add cam-lock (+-value)
     // tween cam (gsap) ...
     // events => hammer.js
     // debug camera
     // camera helper
 
 
-    setFromState(state = this.camStates.initialState) {
+    driveToState(targetState = this.camStates.initialState) {
 
-        console.log('setFromState', state);
+        // let state = Object.assign({}, this.currentState);
+
+        // copy current state =>
+        let state = {
+            targetX: this.cameraControls._targetEnd.x,
+            targetY: this.cameraControls._targetEnd.y,
+            targetZ: this.cameraControls._targetEnd.z,
+            polarAngle: this.cameraControls._spherical.theta,
+            azimuthAngle: this.cameraControls._spherical.phi,
+            zoom: this.cameraControls._spherical.radius
+        };
+
+        TweenMax.to(state, 2, {
+            targetX: targetState.targetX,
+            targetY: targetState.targetY,
+            targetZ: targetState.targetZ,
+            polarAngle: targetState.polarAngle,
+            azimuthAngle: targetState.azimuthAngle,
+            zoom: targetState.zoom,
+            ease: Power2.easeInOut,
+            onUpdate: () => {
+                this.cameraControls.moveTo(
+                    state.targetX,
+                    state.targetY,
+                    state.targetZ,
+                    false
+                );
+                this.cameraControls.rotateTo(
+                    state.polarAngle,
+                    state.azimuthAngle,
+                    false
+                );
+                this.cameraControls.dollyTo(
+                    state.zoom,
+                    false
+                );
+            }
+        })
+    }
+
+
+    setFromState(state = this.camStates.initialState, transition = true) {
+
+        this.currentState = state;
 
         this.cameraControls.moveTo(
             state.targetX,
             state.targetY,
             state.targetZ,
-            true
+            transition
         );
         this.cameraControls.rotateTo(
             state.polarAngle,
             state.azimuthAngle,
-            true
+            transition
         );
         this.cameraControls.dollyTo(
             state.zoom,
-            true
+            transition
         )
     }
 

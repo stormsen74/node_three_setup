@@ -39,6 +39,8 @@ class LandscapeSetupBase {
                 },
                 setInitialState: function () {
                 },
+                driveToState: function () {
+                },
                 startHover: function () {
                 },
                 stopHover: function () {
@@ -177,6 +179,7 @@ class LandscapeSetupBase {
         // this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'setInitialState').onChange(this.setInitialState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'zoom').onChange(this.zoom.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'driveToState').onChange(this.driveToState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
         this.gui.add(this.SETTINGS, 'meshScaleZ').min(-.5).max(2).step(.01).name('meshScaleZ').listen().onChange(this.updateMeshScale.bind(this));
@@ -185,6 +188,10 @@ class LandscapeSetupBase {
 
     zoom() {
         this.sceneCameraController.zoomTo(3);
+    }
+
+    driveToState() {
+        this.sceneCameraController.driveToState();
     }
 
     setInitialState() {

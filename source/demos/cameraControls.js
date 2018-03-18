@@ -5,6 +5,10 @@ let _xColumn = new THREE.Vector3();
 let _yColumn = new THREE.Vector3();
 const EPSILON = 0.0001;
 
+const PI = Math.PI;
+const TWO_PI = Math.PI * 2;
+const HALF_PI = Math.PI * .5;
+
 const STATE = {
     NONE: -1,
     ROTATE: 0,
@@ -15,25 +19,24 @@ const STATE = {
     TOUCH_PAN: 5
 };
 
-class CameraControls {
 
+class CameraControls {
 
     constructor(object, domElement) {
 
         this.object = object;
+        this.domElement = domElement;
 
         this.minDistance = 3;
         this.maxDistance = Infinity;
-        this.minPolarAngle = .2; // radians
-        this.maxPolarAngle = Math.PI * .5; // radians
-        this.minAzimuthAngle = -Infinity; // radians
-        this.maxAzimuthAngle = Infinity; // radians
+        this.minPolarAngle = .2; // top
+        this.maxPolarAngle = PI * .5; // bottom
+        this.minAzimuthAngle = -Infinity;
+        this.maxAzimuthAngle = Infinity;
         this.dampingFactor = 0.05;
         this.draggingDampingFactor = 0.25;
         this.enableZoom = true;
         this.zoomSpeed = 1.0;
-
-        this.domElement = domElement;
 
         // the location of focus, where the object orbits around
         this._target = new THREE.Vector3(0, 0, 0);
@@ -48,259 +51,247 @@ class CameraControls {
         this._target0 = this._target.clone();
         this._position0 = this.object.position.clone();
 
-        this._needsUpdate = true;
         this.update();
 
-        if (!this.domElement) {
 
-            this.dispose = function () {
-            }
+        const scope = this;
+        const dragStart = new THREE.Vector2();
+        const dollyStart = new THREE.Vector2();
+        let state = STATE.NONE;
+        let elementRect;
+        let savedDampingFactor;
 
-        } else {
+        this.domElement.addEventListener('mousedown', onMouseDown);
+        this.domElement.addEventListener('touchstart', onTouchStart);
+        this.domElement.addEventListener('wheel', onMouseWheel);
+        this.domElement.addEventListener('contextmenu', onContextMenu);
 
-            const scope = this;
-            const dragStart = new THREE.Vector2();
-            const dollyStart = new THREE.Vector2();
-            let state = STATE.NONE;
-            let elementRect;
-            let savedDampingFactor;
+        this.dispose = function () {
 
-            this.domElement.addEventListener('mousedown', onMouseDown);
-            this.domElement.addEventListener('touchstart', onTouchStart);
-            this.domElement.addEventListener('wheel', onMouseWheel);
-            this.domElement.addEventListener('contextmenu', onContextMenu);
+            scope.domElement.removeEventListener('mousedown', onMouseDown);
+            scope.domElement.removeEventListener('touchstart', onTouchStart);
+            scope.domElement.removeEventListener('wheel', onMouseWheel);
+            scope.domElement.removeEventListener('contextmenu', onContextMenu);
+            document.removeEventListener('mousemove', dragging);
+            document.removeEventListener('touchmove', dragging);
+            document.removeEventListener('mouseup', endDragging);
+            document.removeEventListener('touchend', endDragging);
 
-            this.dispose = function () {
+        };
 
-                scope.domElement.removeEventListener('mousedown', onMouseDown);
-                scope.domElement.removeEventListener('touchstart', onTouchStart);
-                scope.domElement.removeEventListener('wheel', onMouseWheel);
-                scope.domElement.removeEventListener('contextmenu', onContextMenu);
-                document.removeEventListener('mousemove', dragging);
-                document.removeEventListener('touchmove', dragging);
-                document.removeEventListener('mouseup', endDragging);
-                document.removeEventListener('touchend', endDragging);
+        function onMouseDown(event) {
 
-            };
+            event.preventDefault();
 
-            function onMouseDown(event) {
+            const prevState = state;
 
-                event.preventDefault();
+            switch (event.button) {
 
-                const prevState = state;
+                case THREE.MOUSE.LEFT:
 
-                switch (event.button) {
+                    state = STATE.ROTATE;
+                    break;
 
-                    case THREE.MOUSE.LEFT:
+                case THREE.MOUSE.MIDDLE:
 
-                        state = STATE.ROTATE;
-                        break;
+                    state = STATE.DOLLY;
+                    break;
 
-                    case THREE.MOUSE.MIDDLE:
+                case THREE.MOUSE.RIGHT:
 
-                        state = STATE.DOLLY;
-                        break;
-
-                    case THREE.MOUSE.RIGHT:
-
-                        state = STATE.PAN;
-                        break;
-
-                }
-
-                if (prevState === STATE.NONE) {
-
-                    startDragging(event);
-
-                }
+                    state = STATE.PAN;
+                    break;
 
             }
 
-            function onTouchStart(event) {
+            if (prevState === STATE.NONE) {
 
-                event.preventDefault();
-
-                const prevState = state;
-
-                switch (event.touches.length) {
-
-                    case 1:	// one-fingered touch: rotate
-
-                        state = STATE.TOUCH_ROTATE;
-                        break;
-
-                    case 2:	// two-fingered touch: dolly
-
-                        state = STATE.TOUCH_DOLLY;
-                        break;
-
-                    case 3: // three-fingered touch: pan
-
-                        state = STATE.TOUCH_PAN;
-                        break;
-
-                }
-
-                if (prevState === STATE.NONE) {
-
-                    startDragging(event);
-
-                }
+                startDragging(event);
 
             }
 
-            function onMouseWheel(event) {
+        }
 
-                event.preventDefault();
+        function onTouchStart(event) {
 
-                if (event.deltaY < 0) {
+            event.preventDefault();
 
-                    dollyIn()
+            const prevState = state;
 
-                } else if (event.deltaY > 0) {
+            switch (event.touches.length) {
 
-                    dollyOut();
+                case 1:	// one-fingered touch: rotate
 
-                }
+                    state = STATE.TOUCH_ROTATE;
+                    break;
+
+                case 2:	// two-fingered touch: dolly
+
+                    state = STATE.TOUCH_DOLLY;
+                    break;
+
+                case 3: // three-fingered touch: pan
+
+                    state = STATE.TOUCH_PAN;
+                    break;
 
             }
 
-            function onContextMenu(event) {
+            if (prevState === STATE.NONE) {
 
-                event.preventDefault();
+                startDragging(event);
 
             }
 
-            function startDragging(event) {
+        }
 
-                event.preventDefault();
+        function onMouseWheel(event) {
 
-                const _event = !!event.touches ? event.touches[0] : event;
-                const x = _event.clientX;
-                const y = _event.clientY;
+            event.preventDefault();
 
-                elementRect = scope.domElement.getBoundingClientRect();
-                dragStart.set(x, y);
+            if (event.deltaY < 0) {
 
-                // if ( state === STATE.DOLLY ) {
+                dollyIn()
 
-                // 	dollyStart.set( x, y );
+            } else if (event.deltaY > 0) {
 
-                // }
+                dollyOut();
 
-                if (state === STATE.TOUCH_DOLLY) {
+            }
+
+        }
+
+        function onContextMenu(event) {
+
+            event.preventDefault();
+
+        }
+
+        function startDragging(event) {
+
+            event.preventDefault();
+
+            const _event = !!event.touches ? event.touches[0] : event;
+            const x = _event.clientX;
+            const y = _event.clientY;
+
+            elementRect = scope.domElement.getBoundingClientRect();
+            dragStart.set(x, y);
+
+            // if ( state === STATE.DOLLY ) {
+
+            // 	dollyStart.set( x, y );
+
+            // }
+
+            if (state === STATE.TOUCH_DOLLY) {
+
+                const dx = x - event.touches[1].pageX;
+                const dy = y - event.touches[1].pageY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                dollyStart.set(0, distance);
+
+            }
+
+            savedDampingFactor = scope.dampingFactor;
+            scope.dampingFactor = scope.draggingDampingFactor;
+
+            document.addEventListener('mousemove', dragging, {passive: false});
+            document.addEventListener('touchmove', dragging, {passive: false});
+            document.addEventListener('mouseup', endDragging);
+            document.addEventListener('touchend', endDragging);
+
+        }
+
+        function dragging(event) {
+
+            event.preventDefault();
+
+            const _event = !!event.touches ? event.touches[0] : event;
+            const x = _event.clientX;
+            const y = _event.clientY;
+
+            const deltaX = dragStart.x - x;
+            const deltaY = dragStart.y - y;
+
+            dragStart.set(x, y);
+
+            switch (state) {
+
+                case STATE.ROTATE:
+                case STATE.TOUCH_ROTATE:
+
+                    const rotX = TWO_PI * deltaX / elementRect.width;
+                    const rotY = TWO_PI * deltaY / elementRect.height;
+                    scope.rotate(rotX, rotY, true);
+                    break;
+
+                case STATE.DOLLY:
+                    // not implemented
+                    break;
+
+                case STATE.TOUCH_DOLLY:
 
                     const dx = x - event.touches[1].pageX;
                     const dy = y - event.touches[1].pageY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    const touchDollyStrength = 0.1;
+                    const distance = Math.sqrt(dx * dx + dy * dy) * touchDollyStrength;
+                    const dollyDelta = dollyStart.y - distance;
+
+                    if (dollyDelta > 0) {
+                        dollyOut(0.2);
+                    } else if (dollyDelta < 0) {
+                        dollyIn(0.2);
+                    }
 
                     dollyStart.set(0, distance);
+                    break;
 
-                }
+                case STATE.PAN:
+                case STATE.TOUCH_PAN:
 
-                savedDampingFactor = scope.dampingFactor;
-                scope.dampingFactor = scope.draggingDampingFactor;
-
-                document.addEventListener('mousemove', dragging, {passive: false});
-                document.addEventListener('touchmove', dragging, {passive: false});
-                document.addEventListener('mouseup', endDragging);
-                document.addEventListener('touchend', endDragging);
-
-            }
-
-            function dragging(event) {
-
-                event.preventDefault();
-
-                const _event = !!event.touches ? event.touches[0] : event;
-                const x = _event.clientX;
-                const y = _event.clientY;
-
-                const deltaX = dragStart.x - x;
-                const deltaY = dragStart.y - y;
-
-                dragStart.set(x, y);
-
-                switch (state) {
-
-                    case STATE.ROTATE:
-                    case STATE.TOUCH_ROTATE:
-
-                        const rotX = 2 * Math.PI * deltaX / elementRect.width;
-                        const rotY = 2 * Math.PI * deltaY / elementRect.height;
-                        scope.rotate(rotX, rotY, true);
-                        break;
-
-                    case STATE.DOLLY:
-                        // not implemented
-                        break;
-
-                    case STATE.TOUCH_DOLLY:
-
-                        const dx = x - event.touches[1].pageX;
-                        const dy = y - event.touches[1].pageY;
-
-                        const touchDollyStrength = 0.1;
-                        const distance = Math.sqrt(dx * dx + dy * dy) * touchDollyStrength;
-                        const dollyDelta = dollyStart.y - distance;
-
-                        if (dollyDelta > 0) {
-                            dollyOut(0.2);
-                        } else if (dollyDelta < 0) {
-                            dollyIn(0.2);
-                        }
-
-                        dollyStart.set(0, distance);
-                        break;
-
-                    case STATE.PAN:
-                    case STATE.TOUCH_PAN:
-
-                        const offset = _v3.copy(scope.object.position).sub(scope._target);
-                        // half of the fov is center to top of screen
-                        const targetDistance = offset.length() * Math.tan((scope.object.fov / 2) * Math.PI / 180);
-                        const panX = (2 * deltaX * targetDistance / elementRect.height);
-                        const panY = (2 * deltaY * targetDistance / elementRect.height);
-                        scope.pan(panX, panY, true);
-                        break;
-
-                }
+                    const offset = _v3.copy(scope.object.position).sub(scope._target);
+                    // half of the fov is center to top of screen
+                    const targetDistance = offset.length() * Math.tan((scope.object.fov / 2) * PI / 180);
+                    const panX = (2 * deltaX * targetDistance / elementRect.height);
+                    const panY = (2 * deltaY * targetDistance / elementRect.height);
+                    scope.pan(panX, panY, true);
+                    break;
 
             }
 
-            function endDragging(event) {
+        }
 
-                scope.dampingFactor = savedDampingFactor;
-                state = STATE.NONE;
+        function endDragging(event) {
 
-                document.removeEventListener('mousemove', dragging);
-                document.removeEventListener('touchmove', dragging);
-                document.removeEventListener('mouseup', endDragging);
-                document.removeEventListener('touchend', endDragging);
+            scope.dampingFactor = savedDampingFactor;
+            state = STATE.NONE;
 
-            }
+            document.removeEventListener('mousemove', dragging);
+            document.removeEventListener('touchmove', dragging);
+            document.removeEventListener('mouseup', endDragging);
+            document.removeEventListener('touchend', endDragging);
 
-            function dollyIn(factor = 1.0) {
+        }
 
-                const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
-                scope.dolly(scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius, true);
+        function dollyIn(factor = 1.0) {
 
-            }
+            const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
+            scope.dolly(scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius, true);
 
-            function dollyOut(factor = 1.0) {
+        }
 
-                const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
-                scope.dolly(scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius, true);
+        function dollyOut(factor = 1.0) {
 
-            }
-
+            const zoomScale = Math.pow(0.95, scope.zoomSpeed * factor);
+            scope.dolly(scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius, true);
 
         }
 
     }
 
-    // rotX in radian
-    // rotY in radian
     rotate(rotX, rotY, enableTransition) {
 
         this.rotateTo(
@@ -311,8 +302,6 @@ class CameraControls {
 
     }
 
-    // rotX in radian
-    // rotY in radian
     rotateTo(rotX, rotY, enableTransition) {
 
         const theta = Math.max(this.minAzimuthAngle, Math.min(this.maxAzimuthAngle, rotX));
@@ -328,8 +317,6 @@ class CameraControls {
             this._spherical.phi = this._sphericalEnd.phi;
 
         }
-
-        this._needsUpdate = true;
 
     }
 
@@ -351,8 +338,6 @@ class CameraControls {
 
         }
 
-        this._needsUpdate = true;
-
     }
 
     pan(x, y, enableTransition) {
@@ -373,8 +358,6 @@ class CameraControls {
 
         }
 
-        this._needsUpdate = true;
-
     }
 
     moveTo(x, y, z, enableTransition) {
@@ -387,23 +370,19 @@ class CameraControls {
 
         }
 
-        this._needsUpdate = true;
-
     }
 
     saveState() {
-
-        this._target0.copy(this.target);
+        this._target0.copy(this._target);
         this._position0.copy(this.object.position);
-
     }
 
     reset(enableTransition) {
 
         this._targetEnd.copy(this._target0);
         this._sphericalEnd.setFromVector3(this._position0);
-        this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
-        this._spherical.theta = this._spherical.theta % (2 * Math.PI);
+        this._sphericalEnd.theta = this._sphericalEnd.theta % (TWO_PI);
+        this._spherical.theta = this._spherical.theta % (TWO_PI);
 
         if (!enableTransition) {
 
@@ -411,8 +390,6 @@ class CameraControls {
             this._spherical.copy(this._sphericalEnd);
 
         }
-
-        this._needsUpdate = true;
 
     }
 
@@ -443,8 +420,6 @@ class CameraControls {
 
             this._target.add(deltaTarget.multiplyScalar(dampingFactor));
 
-            this._needsUpdate = true;
-
         } else {
 
             this._spherical.copy(this._sphericalEnd);
@@ -455,11 +430,6 @@ class CameraControls {
         this._spherical.makeSafe();
         this.object.position.setFromSpherical(this._spherical).add(this._target);
         this.object.lookAt(this._target);
-
-        const needsUpdate = this._needsUpdate;
-        this._needsUpdate = false;
-
-        return needsUpdate;
 
     }
 
