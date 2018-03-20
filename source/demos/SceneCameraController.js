@@ -19,9 +19,7 @@ class SceneCameraController {
         this.tempTargetEnd = new THREE.Vector3();
         this.vTargetAnimation = new THREE.Vector3();
 
-        let m = new MathUtils();
         console.log(MathUtils.degToRad(75));
-
 
         this.currentState = null;
         this.sceneData = {
@@ -60,11 +58,10 @@ class SceneCameraController {
         };
 
 
-
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
-        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01, true));
-        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02, false));
-        Mousetrap.bind('shift+3', this.setFromState.bind(this, this.camStates.state_03, true));
+        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.sceneData.state_01, true));
+        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.sceneData.state_02, false));
+        Mousetrap.bind('shift+3', this.setFromState.bind(this, this.sceneData.state_03, true));
 
     }
 
@@ -96,9 +93,10 @@ class SceneCameraController {
     // camera helper
 
 
-    driveToState(targetState = this.camStates.initialState) {
+    driveToState(targetState = this.sceneData.initial) {
 
         // let state = Object.assign({}, this.currentState);
+
 
         // copy current state =>
         let state = {
@@ -139,7 +137,7 @@ class SceneCameraController {
     }
 
 
-    setFromState(state = this.camStates.initialState, transition = true) {
+    setFromState(state = this.sceneData.initial, transition = true) {
 
         this.currentState = state;
 
