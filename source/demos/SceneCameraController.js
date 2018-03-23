@@ -22,14 +22,14 @@ class SceneCameraController {
         console.log(MathUtils.degToRad(75));
 
         this.currentState = null;
-        this.sceneData = {
-            initial: {
-                targetX: 0.13482722236583938,
-                targetY: 0.1548841882472296,
-                targetZ: 0.39605143627131145,
-                polarAngle: -1.3075782956578286,
-                azimuthAngle: 1.3595968206712132,
-                zoom: 3.674077220462012
+        this.camStates = {
+            initialState: {
+                targetX: -0.23069918100501305,
+                targetY: 0.5314676318709793,
+                targetZ: -0.5155496456930395,
+                polarAngle: -1.0529244128047037,
+                azimuthAngle: 1.4915573429506437,
+                zoom: 6.1363797348725635
             },
             state_01: {
                 targetX: 0.13482722236583938,
@@ -59,9 +59,10 @@ class SceneCameraController {
 
 
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
-        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.sceneData.state_01, true));
-        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.sceneData.state_02, false));
-        Mousetrap.bind('shift+3', this.setFromState.bind(this, this.sceneData.state_03, true));
+        Mousetrap.bind('shift+0', this.setFromState.bind(this, this.camStates.initialState, true));
+        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01, true));
+        Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02, false));
+        Mousetrap.bind('shift+3', this.setFromState.bind(this, this.camStates.state_03, true));
 
     }
 
@@ -93,7 +94,7 @@ class SceneCameraController {
     // camera helper
 
 
-    driveToState(targetState = this.sceneData.initial) {
+    driveToState(targetState = this.camStates.initialState) {
 
         // let state = Object.assign({}, this.currentState);
 
@@ -137,7 +138,7 @@ class SceneCameraController {
     }
 
 
-    setFromState(state = this.sceneData.initial, transition = true) {
+    setFromState(state = this.camStates.initialState, transition = true) {
 
         this.currentState = state;
 
