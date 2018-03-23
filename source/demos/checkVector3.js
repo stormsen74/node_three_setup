@@ -283,7 +283,7 @@ class CV3 {
 
     plotPoint(v, t) {
         var max = this.waypoints[this.waypoints.length - 1].t;
-        var r = t < max * .5 ? mathUtils.convertToRange(t, [0, max * .5], [3, 20]) : mathUtils.convertToRange(t, [0, max], [20, 3])
+        var r = t < max * .5 ? mathUtils.convertToRange(t, [0, max * .5], [3, 20]) : mathUtils.convertToRange(t, [0, max], [20, 3]);
         var geometry = new THREE.CubeGeometry(r, r, r, 5, 5, 5);
         var material = new THREE.MeshNormalMaterial({
             wireframe: false
@@ -321,7 +321,7 @@ class CV3 {
                 this.waypoints[i].position.y = this.v3.y;
                 this.waypoints[i].position.z = this.v3.z;
 
-                // this.plotPoint(this.v3, this.SPHERICAL.theta);
+                this.plotPoint(this.v3, this.SPHERICAL.theta);
             }
         }
 
