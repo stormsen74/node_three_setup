@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import CameraControls from './cameraControls';
+import MathUtils from "./mathUtils";
 
 var gsap = require('gsap');
 var Mousetrap = require('mousetrap');
@@ -8,7 +9,7 @@ var Mousetrap = require('mousetrap');
 
 const degToRad = (deg) => {
     return deg * 0.0174533;
-}
+};
 
 class SceneCameraController {
 
@@ -18,8 +19,9 @@ class SceneCameraController {
         this.tempTargetEnd = new THREE.Vector3();
         this.vTargetAnimation = new THREE.Vector3();
 
-        this.currentState = null;
+        console.log(MathUtils.degToRad(75));
 
+        this.currentState = null;
         this.camStates = {
             initialState: {
                 targetX: -0.23069918100501305,
@@ -95,6 +97,7 @@ class SceneCameraController {
     driveToState(targetState = this.camStates.initialState) {
 
         // let state = Object.assign({}, this.currentState);
+
 
         // copy current state =>
         let state = {
