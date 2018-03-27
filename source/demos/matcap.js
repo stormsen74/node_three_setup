@@ -89,7 +89,7 @@ class Matcap {
 
 
 
-        var sem_shader_options = {
+        const sem_shader_options = {
             vertex_shader: 'source/shader/matcap_vert.glsl',
             fragment_shader: 'source/shader/matcap_frag.glsl',
             uniforms: {
@@ -100,7 +100,7 @@ class Matcap {
             }
         };
 
-        var vertex_displacement_shader_options = {
+        const vertex_displacement_shader_options = {
             update_timer: true,
             vertex_shader: 'source/shader/vdisp_vs.glsl',
             fragment_shader: 'source/shader/vdisp_fs.glsl',
@@ -116,7 +116,7 @@ class Matcap {
             }
         };
 
-        var vertex_displacement_matcap_shader_options = {
+        const vertex_displacement_matcap_shader_options = {
             update_timer: true,
             vertex_shader: 'source/shader/vdisp_sem_vs.glsl',
             fragment_shader: 'source/shader/vdisp_sem_fs.glsl',
@@ -137,15 +137,15 @@ class Matcap {
         };
 
 
-        this.createShaderMaterial(vertex_displacement_matcap_shader_options);
+        this.createShaderMaterial(vertex_displacement_shader_options);
 
     }
 
 
     createShaderMaterial(options) {
-        var shaderMaterial;
+        let shaderMaterial;
 
-        var shaderLoader = new ShaderLoader(
+        let shaderLoader = new ShaderLoader(
             options.vertex_shader,
             options.fragment_shader,
             shaderReady.bind(this)

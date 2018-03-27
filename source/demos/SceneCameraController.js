@@ -18,6 +18,7 @@ class SceneCameraController {
         this.cameraControls = new CameraControls(_camera, _domElement);
         this.tempTargetEnd = new THREE.Vector3();
         this.vTargetAnimation = new THREE.Vector3();
+        this.cameraControls.saveState();
 
         console.log(MathUtils.degToRad(75));
 

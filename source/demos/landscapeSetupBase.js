@@ -28,29 +28,40 @@ class LandscapeSetupBase {
         this.clock = new THREE.Clock();
         this.delta = 0;
         this.elapsed = 0;
+        this.size = {
+            w: window.innerWidth,
+            h: window.innerHeight
+        }
 
         this.SETTINGS = {
             tlProgress: 0.0,
             tlSpeed: 0,
             zoom: 1,
-            meshScaleZ:.1,
+            meshScaleZ: .1,
             METHODS: {
-                zoom: function () {
+                zoom: () => {
                 },
-                setInitialState: function () {
+                offsetCamera: () => {
                 },
-                driveToState: function () {
+                resetCamera: () => {
                 },
-                startHover: function () {
+                setInitialState: () => {
                 },
-                stopHover: function () {
+                driveToState: () => {
+                },
+                startHover: () => {
+                },
+                stopHover: () => {
                 }
             },
         };
 
-        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        this.camera = new THREE.PerspectiveCamera(50, this.size.w / this.size.h, 1, 1000);
         this.camera.position.y = .8;
         this.camera.position.z = 5.2;
+
 
         this.scene = new THREE.Scene();
 
@@ -179,6 +190,8 @@ class LandscapeSetupBase {
         // this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'setInitialState').onChange(this.setInitialState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'zoom').onChange(this.zoom.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'offsetCamera').onChange(this.offsetCamera.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'resetCamera').onChange(this.resetCamera.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'driveToState').onChange(this.driveToState.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
@@ -190,6 +203,16 @@ class LandscapeSetupBase {
         this.sceneCameraController.zoomTo(3);
     }
 
+    offsetCamera() {
+        this.camera.setViewOffset(this.size.w, this.size.h, -400, 0, this.size.w, this.size.h);
+        this.camera.updateProjectionMatrix();
+    }
+
+    resetCamera() {
+        this.camera.setViewOffset(this.size.w, this.size.h, 0, 0, this.size.w, this.size.h);
+        this.camera.updateProjectionMatrix();
+    }
+
     driveToState() {
         this.sceneCameraController.driveToState();
     }
@@ -197,7 +220,6 @@ class LandscapeSetupBase {
     setInitialState() {
         this.sceneCameraController.setFromState();
     }
-
 
 
     startHover() {
@@ -209,7 +231,7 @@ class LandscapeSetupBase {
     }
 
 
-    updateMeshScale () {
+    updateMeshScale() {
         this.landscapeMesh_01.scale.z = this.SETTINGS.meshScaleZ;
     }
 

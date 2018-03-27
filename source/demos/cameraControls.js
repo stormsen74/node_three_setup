@@ -39,8 +39,9 @@ class CameraControls {
         this.zoomSpeed = 1.0;
 
         // the location of focus, where the object orbits around
-        this._target = new THREE.Vector3(0, 0, 0);
-        this._targetEnd = new THREE.Vector3(0, 0, 0);
+        this._origin = new THREE.Vector3(0, 0, 0)
+        this._target = this._origin.clone();
+        this._targetEnd = this._origin.clone();
 
         // rotation
         this._spherical = new THREE.Spherical();

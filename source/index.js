@@ -22,7 +22,7 @@ import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 const init = () => {
 
-    const demo = new CV3();
+    const demo = new LandscapeSetupBase();
 
     const update = () => {
         raf(update);
@@ -40,5 +40,5 @@ const init = () => {
 };
 
 
-if (document.readyState === 'complete') init()
+if (document.readyState === 'complete') init();
 else window.addEventListener('load', init);
