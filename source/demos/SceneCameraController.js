@@ -32,6 +32,14 @@ class SceneCameraController {
                 azimuthAngle: 1.4915573429506437,
                 zoom: 6.1363797348725635
             },
+            zeroPan: {
+                targetX: 0,
+                targetY: 0,
+                targetZ: 0,
+                polarAngle: -1.0529244128047037,
+                azimuthAngle: 1.4915573429506437,
+                zoom: 6.1363797348725635
+            },
             state_01: {
                 targetX: 0.13482722236583938,
                 targetY: 0.1548841882472296,
@@ -61,7 +69,7 @@ class SceneCameraController {
 
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
         Mousetrap.bind('shift+0', this.setFromState.bind(this, this.camStates.initialState, true));
-        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.state_01, true));
+        Mousetrap.bind('shift+1', this.setFromState.bind(this, this.camStates.zeroPan, true));
         Mousetrap.bind('shift+2', this.setFromState.bind(this, this.camStates.state_02, false));
         Mousetrap.bind('shift+3', this.setFromState.bind(this, this.camStates.state_03, true));
 
@@ -81,6 +89,11 @@ class SceneCameraController {
             "zoom: " + this.cameraControls._spherical.radius + " \n" +
             "======== camera properties ======== \n"
         );
+    }
+
+
+    moveTo(x, y, z, enableTransition) {
+        this.cameraControls.moveTo(x, y, z, enableTransition)
     }
 
 

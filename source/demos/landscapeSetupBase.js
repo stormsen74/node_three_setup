@@ -41,6 +41,8 @@ class LandscapeSetupBase {
             METHODS: {
                 zoom: () => {
                 },
+                moveTo: () => {
+                },
                 offsetCamera: () => {
                 },
                 resetCamera: () => {
@@ -56,14 +58,21 @@ class LandscapeSetupBase {
             },
         };
 
-        let w = window.innerWidth;
-        let h = window.innerHeight;
+        this.scene = new THREE.Scene();
+
+
         this.camera = new THREE.PerspectiveCamera(50, this.size.w / this.size.h, 1, 1000);
         this.camera.position.y = .8;
         this.camera.position.z = 5.2;
+        this.camHelper = new THREE.CameraHelper(this.camera);
+        // this.scene.add(this.camHelper);
 
 
-        this.scene = new THREE.Scene();
+        this.debugCam = new THREE.PerspectiveCamera(50, this.size.w / this.size.h, 1, 10000);
+        this.debugCam.position.z = 0;
+        this.debugCam.position.x = -10;
+        this.debugCam.position.y = 10;
+        this.debugCam.lookAt(new THREE.Vector3());
 
 
         this.renderer = new THREE.WebGLRenderer({
@@ -78,11 +87,11 @@ class LandscapeSetupBase {
 
 
         this.sceneCameraController = new SceneCameraController(this.camera, this.renderer.domElement);
-        // this.sceneCameraController.doSome();
 
 
         this.scene.add(new THREE.GridHelper(10, 10));
         this.scene.add(new THREE.AxesHelper(1));
+
 
 
         this.shaderMaterial = new THREE.ShaderMaterial({
@@ -97,6 +106,13 @@ class LandscapeSetupBase {
                 USE_MAP: ''
             }
         });
+
+
+        this.cubeGeom = new THREE.BoxBufferGeometry(.5, .5, .5);
+        this.cube = new THREE.Mesh(this.cubeGeom, this.shaderMaterial);
+        this.cube.position.y = .25;
+        this.cube.rotation.y = Math.PI * .5;
+        // this.scene.add(this.cube);
 
 
         this.scene.add(new THREE.AxesHelper(1));
@@ -136,6 +152,7 @@ class LandscapeSetupBase {
             this.landscapeMesh_01.material = landscapeMaterial_1;
             this.backgroundContainer.add(this.landscapeMesh_01);
             this.scene.add(this.backgroundContainer);
+            this.scene.add(this.camHelper);
 
 
             this.initDAT();
@@ -145,6 +162,8 @@ class LandscapeSetupBase {
 
 
         this.initLights();
+
+
 
 
     }
@@ -174,12 +193,19 @@ class LandscapeSetupBase {
     }
 
     update() {
-
+        // this.scene.rotation.y += .001;
     }
 
     render() {
         this.sceneCameraController.update();
+
+
+        // this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+        // this.renderer.render(this.scene, this.camera);
+
+        // this.renderer.setViewport(100, 0, window.innerWidth * .5, window.innerHeight * .5);
         this.renderer.render(this.scene, this.camera);
+        // this.renderer.render(this.scene, this.debugCam);
     }
 
 
@@ -189,6 +215,7 @@ class LandscapeSetupBase {
         // this.gui.add(this.SETTINGS, 'tlProgress').step(.001).name('tlProgress').listen();
         // this.gui.add(this.SETTINGS, 'tlSpeed').min(0).max(5).step(.01).name('tlSpeed').listen().onChange(this.updateParams.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'setInitialState').onChange(this.setInitialState.bind(this));
+        this.gui.add(this.SETTINGS.METHODS, 'moveTo').onChange(this.moveTo.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'zoom').onChange(this.zoom.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'offsetCamera').onChange(this.offsetCamera.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'resetCamera').onChange(this.resetCamera.bind(this));
@@ -201,6 +228,10 @@ class LandscapeSetupBase {
 
     zoom() {
         this.sceneCameraController.zoomTo(3);
+    }
+
+    moveTo() {
+        this.sceneCameraController.moveTo(0, 0, 10, false)
     }
 
     offsetCamera() {
