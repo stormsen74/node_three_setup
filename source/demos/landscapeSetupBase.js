@@ -204,7 +204,7 @@ class LandscapeSetupBase {
     }
 
     offsetCamera() {
-        this.camera.setViewOffset(this.size.w, this.size.h, -400, 0, this.size.w, this.size.h);
+        this.camera.setViewOffset(this.size.w, this.size.h, -300, 0, this.size.w, this.size.h);
         this.camera.updateProjectionMatrix();
     }
 
@@ -220,7 +220,6 @@ class LandscapeSetupBase {
     setInitialState() {
         this.sceneCameraController.setFromState();
     }
-
 
     startHover() {
         this.sceneCameraController.startHover();

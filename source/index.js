@@ -22,7 +22,7 @@ import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 const init = () => {
 
-    const demo = new LandscapeSetupBase();
+    const demo = new CV3();
 
     const update = () => {
         raf(update);

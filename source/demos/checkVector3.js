@@ -31,8 +31,8 @@ class CV3 {
             phi: 0,
             theta: 0,
             radius: 200,
-            stepPhi: .1,
-            stepTheta: .01
+            stepPhi: .001,
+            stepTheta: .001
         }
         this.GEOM = {
             count: 120,
