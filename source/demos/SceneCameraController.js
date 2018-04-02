@@ -178,7 +178,6 @@ class SceneCameraController {
         this.cameraControls.dollyTo(zoomlLevel, true)
     }
 
-
     startHover() {
         // TODO => Timeline
 
@@ -186,8 +185,8 @@ class SceneCameraController {
         this.tempTargetEnd = this.cameraControls._targetEnd.clone();
         this.vTargetAnimation = this.tempTargetEnd.clone();
 
-        TweenMax.to(this.vTargetAnimation, 2, {
-            y: this.tempTargetEnd.y + .25,
+        TweenMax.to(this.vTargetAnimation, 1.5, {
+            y: this.tempTargetEnd.y + .15,
             ease: Sine.easeInOut,
             yoyo: true,
             repeat: -1,
@@ -224,7 +223,6 @@ class SceneCameraController {
         this.cameraControls.update();
     }
 }
-
 
 // ——————————————————————————————————————————————————
 // Exports

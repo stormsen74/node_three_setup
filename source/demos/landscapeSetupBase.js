@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {Vector2} from "../math/vector2";
 
 import SceneCameraController from "./SceneCameraController";
+import {TWO_PI} from "../utils/mathUtils";
 
 var gsap = require('gsap');
 
@@ -38,6 +39,7 @@ class LandscapeSetupBase {
             tlSpeed: 0,
             zoom: 1,
             meshScaleZ: .1,
+            sceneRotationY: 0,
             METHODS: {
                 zoom: () => {
                 },
@@ -71,7 +73,7 @@ class LandscapeSetupBase {
         this.debugCam = new THREE.PerspectiveCamera(50, this.size.w / this.size.h, 1, 10000);
         this.debugCam.position.z = 0;
         this.debugCam.position.x = -10;
-        this.debugCam.position.y = 10;
+        this.debugCam.position.y = 3;
         this.debugCam.lookAt(new THREE.Vector3());
 
 
@@ -93,7 +95,6 @@ class LandscapeSetupBase {
         this.scene.add(new THREE.AxesHelper(1));
 
 
-
         this.shaderMaterial = new THREE.ShaderMaterial({
             vertexShader: glslify('../shader/glslify/matcap_vert.glsl'),
             fragmentShader: glslify('../shader/glslify/matcap_frag.glsl'),
@@ -112,7 +113,7 @@ class LandscapeSetupBase {
         this.cube = new THREE.Mesh(this.cubeGeom, this.shaderMaterial);
         this.cube.position.y = .25;
         this.cube.rotation.y = Math.PI * .5;
-        // this.scene.add(this.cube);
+        this.scene.add(this.cube);
 
 
         this.scene.add(new THREE.AxesHelper(1));
@@ -152,7 +153,6 @@ class LandscapeSetupBase {
             this.landscapeMesh_01.material = landscapeMaterial_1;
             this.backgroundContainer.add(this.landscapeMesh_01);
             this.scene.add(this.backgroundContainer);
-            this.scene.add(this.camHelper);
 
 
             this.initDAT();
@@ -162,8 +162,6 @@ class LandscapeSetupBase {
 
 
         this.initLights();
-
-
 
 
     }
@@ -198,12 +196,6 @@ class LandscapeSetupBase {
 
     render() {
         this.sceneCameraController.update();
-
-
-        // this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-        // this.renderer.render(this.scene, this.camera);
-
-        // this.renderer.setViewport(100, 0, window.innerWidth * .5, window.innerHeight * .5);
         this.renderer.render(this.scene, this.camera);
         // this.renderer.render(this.scene, this.debugCam);
     }
@@ -223,11 +215,16 @@ class LandscapeSetupBase {
         this.gui.add(this.SETTINGS.METHODS, 'startHover').onChange(this.startHover.bind(this));
         this.gui.add(this.SETTINGS.METHODS, 'stopHover').onChange(this.stopHover.bind(this));
         this.gui.add(this.SETTINGS, 'meshScaleZ').min(-.5).max(2).step(.01).name('meshScaleZ').listen().onChange(this.updateMeshScale.bind(this));
+        this.gui.add(this.SETTINGS, 'sceneRotationY').min(0).max(TWO_PI).step(.01).name('sceneRotationY').listen().onChange(this.updateSceneRotation.bind(this));
     }
 
 
     zoom() {
         this.sceneCameraController.zoomTo(3);
+    }
+
+    updateSceneRotation() {
+        this.scene.rotation.y = this.SETTINGS.sceneRotationY;
     }
 
     moveTo() {
@@ -259,7 +256,6 @@ class LandscapeSetupBase {
     stopHover() {
         this.sceneCameraController.stopHover();
     }
-
 
     updateMeshScale() {
         this.landscapeMesh_01.scale.z = this.SETTINGS.meshScaleZ;

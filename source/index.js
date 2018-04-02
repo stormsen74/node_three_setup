@@ -2,6 +2,8 @@
 //  * Created by STORMSEN on 29.11.2016.
 //  */
 
+import CamHelperTest from "./demos/camHelperTest";
+
 var raf = require('raf');
 import Demo from './demos/demo';
 import Matcap from './demos/matcap';
@@ -22,7 +24,7 @@ import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 const init = () => {
 
-    const demo = new CV3();
+    const demo = new LandscapeSetupBase();
 
     const update = () => {
         raf(update);
