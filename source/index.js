@@ -15,6 +15,8 @@ import Polyplane from './demos/polyplane';
 import ColladaImport from './demos/colladaImportTest.js';
 import SceneSetupBase from './demos/sceneSetupBase';
 import LandscapeSetupBase from './demos/landscapeSetupBase';
+import SecondCamSetup from "./demos/secondCamSetup";
+
 
 // https://github.com/josdirksen
 // https://github.com/Jam3/three-path-geometry
@@ -24,7 +26,7 @@ import LandscapeSetupBase from './demos/landscapeSetupBase';
 
 const init = () => {
 
-    const demo = new LandscapeSetupBase();
+    const demo = new SecondCamSetup();
 
     const update = () => {
         raf(update);

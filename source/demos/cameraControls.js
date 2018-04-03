@@ -29,7 +29,9 @@ class CameraControls {
 
         this.minDistance = 3;
         this.maxDistance = Infinity;
-        this.minPolarAngle = .2; // top
+        // this.minPolarAngle = PI * .3; // top
+        // this.maxPolarAngle = PI * .45; // bottom
+        this.minPolarAngle = 0; // top
         this.maxPolarAngle = PI * .5; // bottom
         this.minAzimuthAngle = -Infinity;
         this.maxAzimuthAngle = Infinity;
@@ -253,6 +255,8 @@ class CameraControls {
                 case STATE.PAN:
                 case STATE.TOUCH_PAN:
 
+                    return
+
                     const offset = _v3.copy(scope.object.position).sub(scope._target);
                     // half of the fov is center to top of screen
                     const targetDistance = offset.length() * Math.tan((scope.object.fov / 2) * PI / 180);
@@ -430,7 +434,7 @@ class CameraControls {
 
         this._spherical.makeSafe();
         this.object.position.setFromSpherical(this._spherical).add(this._target);
-        this.object.lookAt(this._target);
+        this.object.lookAt(new THREE.Vector3(0, 0, 0));
 
     }
 

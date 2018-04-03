@@ -258,6 +258,7 @@ class CamHelperTest {
 
         this.setObjectPosition(this.drivenCamera, this.v3);
         this.drivenCamera.lookAt(this.vCamTarget);
+        this.drivenCamera.position.add(new THREE.Vector3(1,0,0))
 
         this.line.geometry.vertices[1] = this.v3;
         this.line.geometry.verticesNeedUpdate = true;
@@ -268,7 +269,7 @@ class CamHelperTest {
     render() {
 
         this.renderer.render(this.scene, this.drivenCamera);
-        this.renderer.render(this.scene, this.camera);
+        // this.renderer.render(this.scene, this.camera);
     }
 
 }
