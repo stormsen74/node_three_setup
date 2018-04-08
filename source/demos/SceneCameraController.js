@@ -31,51 +31,35 @@ class SceneCameraController {
 
         this.currentState = null;
         this.camStates = {
-            initialState: {
-                offsetX: 0,
-                offsetY: 0,
-                offsetZ: 0,
-                polarAngle: -1.0529244128047037,
-                azimuthAngle: 1.4915573429506437,
-                zoom: 6.1363797348725635
-            },
-            zeroPan: {
-                offsetX: 0,
-                offsetY: 0,
-                offsetZ: 0,
-                polarAngle: -1.0529244128047037,
-                azimuthAngle: 1.4915573429506437,
-                zoom: 6.1363797348725635
-            },
             state_01: {
-                offsetX: -1.9100000000000001,
-                offsetY: 0.25,
+                offsetX: 0,
+                offsetY: 0,
                 offsetZ: 0,
-                polarAngle: -1.344013332900752,
-                azimuthAngle: 1.4074310124779479,
-                zoom: 4.285262831855387
+                polarAngle: 1.4181469983996315,
+                azimuthAngle: 0,
+                zoom: 5.261178575186363
             },
             state_02: {
                 offsetX: 0,
                 offsetY: 0,
                 offsetZ: 0,
-                polarAngle: -1.92381973288244,
-                azimuthAngle: 1.1272773639351614,
-                zoom: 16.261616938713104
+                polarAngle: 1.4181469983996315,
+                azimuthAngle: MathUtils.PI * .25,
+                zoom: 5.261178575186363
             },
             state_03: {
                 offsetX: 0,
                 offsetY: 0,
                 offsetZ: 0,
-                polarAngle: -1.2264190855131918,
-                azimuthAngle: 1.1272773639351616,
-                zoom: 16.261616938713104
+                polarAngle: 1.1851474257851484,
+                // azimuthAngle: MathUtils.HALF_PI,
+                azimuthAngle: -MathUtils.PI + .35,
+                zoom: 5.261178575186364
             }
         };
 
-
         Mousetrap.bind('shift+s', this.logCamPosition.bind(this));
-        Mousetrap.bind('shift+0', this.driveToState.bind(this, this.camStates.initialState));
+        // Mousetrap.bind('shift+0', this.driveToState.bind(this, this.camStates.state_01));
         Mousetrap.bind('shift+1', this.driveToState.bind(this, this.camStates.state_01));
         Mousetrap.bind('shift+2', this.driveToState.bind(this, this.camStates.state_02));
         Mousetrap.bind('shift+3', this.driveToState.bind(this, this.camStates.state_03));
@@ -85,7 +69,18 @@ class SceneCameraController {
         Mousetrap.bind('w', this.addOffsetY.bind(this));
         Mousetrap.bind('s', this.subOffsetY.bind(this));
 
+
+        Mousetrap.bind('t', this.trace.bind(this));
+
     }
+
+    trace() {
+        const a = this.cameraControls._spherical.theta % MathUtils.TWO_PI;
+        let a_mapped = a <= 0 ? MathUtils.TWO_PI + a : a;
+
+        console.log(MathUtils.radToDeg(a_mapped))
+    }
+
 
     addOffsetX() {
         this.vecCameraOffset.x += .01;
@@ -104,7 +99,6 @@ class SceneCameraController {
     }
 
 
-
     // log Camera Position
     logCamPosition() {
         // theta => polar angle
@@ -114,8 +108,8 @@ class SceneCameraController {
             "offsetX: " + this.vecCameraOffset.x + ", \n" +
             "offsetY: " + this.vecCameraOffset.y + ", \n" +
             "offsetZ: " + this.vecCameraOffset.z + ", \n" +
-            "polarAngle: " + this.cameraControls._spherical.theta + ", \n" +
-            "azimuthAngle: " + this.cameraControls._spherical.phi + ", \n" +
+            "polarAngle: " + this.cameraControls._spherical.phi + ", \n" +
+            "azimuthAngle: " + this.cameraControls._spherical.theta + ", \n" +
             "zoom: " + this.cameraControls._spherical.radius + " \n" +
             "======== camera properties ======== \n"
         );
@@ -138,45 +132,63 @@ class SceneCameraController {
     // camera helper
 
 
-    driveToState(targetState = this.camStates.initialState) {
+    driveToState(targetState = this.camStates.state_01) {
 
-        // let state = Object.assign({}, this.currentState);
-
+        this.cameraControls._spherical.theta = this.cameraControls._spherical.theta % MathUtils.TWO_PI;
+        this.cameraControls._sphericalEnd.theta = this.cameraControls._sphericalEnd.theta % MathUtils.TWO_PI;
 
         // copy current state =>
         let state = {
             offsetX: this.vecCameraOffset.x,
             offsetY: this.vecCameraOffset.y,
             offsetZ: this.vecCameraOffset.z,
-            polarAngle: this.cameraControls._spherical.theta,
-            azimuthAngle: this.cameraControls._spherical.phi,
+            polarAngle: this.cameraControls._spherical.phi,
+            azimuthAngle: this.cameraControls._spherical.theta,
             zoom: this.cameraControls._spherical.radius
         };
 
-        console.log(targetState)
+
+        let distance = targetState.azimuthAngle - state.azimuthAngle;
+        console.log('distance:', MathUtils.radToDeg(state.azimuthAngle));
+
+        let newAngle = 0;
+        if (Math.abs(distance) > MathUtils.PI) {
+            if (targetState.azimuthAngle > 0) {
+                console.log('>', this.cameraControls._spherical.theta)
+                newAngle = targetState.azimuthAngle + MathUtils.TWO_PI;
+                if (this.cameraControls._spherical.theta < 0) {
+                    newAngle = targetState.azimuthAngle - MathUtils.TWO_PI
+                }
+            } else {
+                console.log('<', this.cameraControls._spherical.theta)
+                newAngle = targetState.azimuthAngle - MathUtils.TWO_PI;
+                if (this.cameraControls._spherical.theta > 0) {
+                    newAngle = targetState.azimuthAngle + MathUtils.TWO_PI
+                }
+            }
+        } else {
+            console.log('distance <')
+            newAngle = targetState.azimuthAngle;
+        }
+
+
 
         TweenMax.to(state, 2, {
             offsetX: targetState.offsetX,
             offsetY: targetState.offsetY,
             offsetZ: targetState.offsetZ,
             polarAngle: targetState.polarAngle,
-            azimuthAngle: targetState.azimuthAngle,
+            azimuthAngle: newAngle,
             zoom: targetState.zoom,
             ease: Power2.easeInOut,
             onUpdate: () => {
-                // this.cameraControls.moveTo(
-                //     state.targetX,
-                //     state.targetY,
-                //     state.targetZ,
-                //     false
-                // );
                 this.vecCameraOffset.x = state.offsetX;
                 this.vecCameraOffset.y = state.offsetY;
                 this.vecCameraOffset.z = state.offsetZ;
 
                 this.cameraControls.rotateTo(
-                    state.polarAngle,
                     state.azimuthAngle,
+                    state.polarAngle,
                     false
                 );
                 this.cameraControls.dollyTo(
@@ -256,6 +268,9 @@ class SceneCameraController {
     }
 
     update() {
+        // console.log("rad: " + this.cameraControls._spherical.theta + "deg: " + MathUtils.radToDeg(this.cameraControls._spherical.theta));
+
+
         this.cameraControls.update();
         this.camera.position.copy(this.orbitalCam.position);
         this.camera.rotation.copy(this.orbitalCam.rotation);

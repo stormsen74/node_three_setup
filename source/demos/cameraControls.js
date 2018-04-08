@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import MathUtils from "./mathUtils";
 
 let _v3 = new THREE.Vector3();
 let _xColumn = new THREE.Vector3();
@@ -172,6 +173,7 @@ class CameraControls {
 
         function startDragging(event) {
 
+
             event.preventDefault();
 
             const _event = !!event.touches ? event.touches[0] : event;
@@ -181,17 +183,18 @@ class CameraControls {
             elementRect = scope.domElement.getBoundingClientRect();
             dragStart.set(x, y);
 
-            // if ( state === STATE.DOLLY ) {
+            if (state === STATE.DOLLY) {
 
-            // 	dollyStart.set( x, y );
+                dollyStart.set(x, y);
 
-            // }
+            }
 
             if (state === STATE.TOUCH_DOLLY) {
 
                 const dx = x - event.touches[1].pageX;
                 const dy = y - event.touches[1].pageY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
+
 
                 dollyStart.set(0, distance);
 
@@ -209,6 +212,8 @@ class CameraControls {
 
         function dragging(event) {
 
+            // console.log('dragging');
+
             event.preventDefault();
 
             const _event = !!event.touches ? event.touches[0] : event;
@@ -222,31 +227,35 @@ class CameraControls {
 
             switch (state) {
 
+
                 case STATE.ROTATE:
                 case STATE.TOUCH_ROTATE:
+
+                    console.log(scope._spherical.theta)
 
                     const rotX = TWO_PI * deltaX / elementRect.width;
                     const rotY = TWO_PI * deltaY / elementRect.height;
                     scope.rotate(rotX, rotY, true);
+
+                    console
                     break;
 
                 case STATE.DOLLY:
                     // not implemented
                     break;
-
                 case STATE.TOUCH_DOLLY:
 
                     const dx = x - event.touches[1].pageX;
                     const dy = y - event.touches[1].pageY;
 
-                    const touchDollyStrength = 0.1;
+                    const touchDollyStrength = 1;
                     const distance = Math.sqrt(dx * dx + dy * dy) * touchDollyStrength;
                     const dollyDelta = dollyStart.y - distance;
 
                     if (dollyDelta > 0) {
-                        dollyOut(0.2);
+                        dollyOut(.5);
                     } else if (dollyDelta < 0) {
-                        dollyIn(0.2);
+                        dollyIn(.5);
                     }
 
                     dollyStart.set(0, distance);
@@ -269,7 +278,10 @@ class CameraControls {
 
         }
 
+
         function endDragging(event) {
+
+            // console.log('end drag');
 
             scope.dampingFactor = savedDampingFactor;
             state = STATE.NONE;
