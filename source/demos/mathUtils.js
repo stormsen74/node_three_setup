@@ -13,6 +13,10 @@ class MathUtils {
         return rad * 57.2958;
     }
 
+    static isPositive(value) {
+        return value > 0
+    }
+
     static convertToRange(value, srcRange = [], dstRange = []) {
 
         return

@@ -36,8 +36,9 @@ class CameraControls {
         this.maxPolarAngle = PI * .5; // bottom
         this.minAzimuthAngle = -Infinity;
         this.maxAzimuthAngle = Infinity;
-        this.dampingFactor = 0.05;
-        this.draggingDampingFactor = 0.25;
+        this.dampingFactor = 0.03;
+        this.draggingDampingFactor = 0.35;
+        this.easeDamping = 1;
         this.enableZoom = true;
         this.zoomSpeed = 1.0;
 
@@ -46,17 +47,19 @@ class CameraControls {
         this._target = this._origin.clone();
         this._targetEnd = this._origin.clone();
 
+
+
         // rotation
         this._spherical = new THREE.Spherical();
         this._spherical.setFromVector3(this.object.position);
         this._sphericalEnd = new THREE.Spherical().copy(this._spherical);
+        this.velocityA = 0;
 
         // reset
         this._target0 = this._target.clone();
         this._position0 = this.object.position.clone();
 
         this.update();
-
 
         const scope = this;
         const dragStart = new THREE.Vector2();
@@ -84,6 +87,14 @@ class CameraControls {
         };
 
         function onMouseDown(event) {
+
+
+            scope.easeDamping = 1;
+            scope.rotateTo(
+                scope._spherical.theta % MathUtils.TWO_PI,
+                scope._spherical.phi,
+                false
+            );
 
             event.preventDefault();
 
@@ -195,7 +206,6 @@ class CameraControls {
                 const dy = y - event.touches[1].pageY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-
                 dollyStart.set(0, distance);
 
             }
@@ -231,13 +241,10 @@ class CameraControls {
                 case STATE.ROTATE:
                 case STATE.TOUCH_ROTATE:
 
-                    console.log(scope._spherical.theta)
-
                     const rotX = TWO_PI * deltaX / elementRect.width;
                     const rotY = TWO_PI * deltaY / elementRect.height;
                     scope.rotate(rotX, rotY, true);
 
-                    console
                     break;
 
                 case STATE.DOLLY:
@@ -278,10 +285,20 @@ class CameraControls {
 
         }
 
-
         function endDragging(event) {
 
-            // console.log('end drag');
+            if (Math.abs(scope.thetaVelocity) > .5) {
+                if (scope.deltaTheta > 0) {
+                    scope._spherical.theta = scope._spherical.theta - MathUtils.TWO_PI;
+                    scope.easeDamping = scope.thetaVelocity * 1.25;
+                } else {
+                    scope._spherical.theta = scope._spherical.theta + MathUtils.TWO_PI
+                    scope.easeDamping = -1 * scope.thetaVelocity * 1.25;
+                }
+            } else {
+                scope.easeDamping = 1
+            }
+
 
             scope.dampingFactor = savedDampingFactor;
             state = STATE.NONE;
@@ -290,7 +307,6 @@ class CameraControls {
             document.removeEventListener('touchmove', dragging);
             document.removeEventListener('mouseup', endDragging);
             document.removeEventListener('touchend', endDragging);
-
         }
 
         function dollyIn(factor = 1.0) {
@@ -414,11 +430,15 @@ class CameraControls {
 
         // console.log(this._targetEnd, this._spherical)
 
+        this.thetaVelocity = this._sphericalEnd.theta - this._spherical.theta;
+
         const dampingFactor = this.dampingFactor;
-        const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
+        const deltaTheta = this._sphericalEnd.theta * this.easeDamping - this._spherical.theta;
         const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
         const deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this._target);
+        this.deltaTheta = deltaTheta;
+
 
         if (
             Math.abs(deltaTheta) > EPSILON ||
@@ -434,10 +454,17 @@ class CameraControls {
                 this._spherical.phi + deltaPhi * dampingFactor,
                 this._spherical.theta + deltaTheta * dampingFactor
             );
-
             this._target.add(deltaTarget.multiplyScalar(dampingFactor));
 
         } else {
+
+            console.log('END')
+            this.easeDamping = 1;
+            this.rotateTo(
+                this._spherical.theta % MathUtils.TWO_PI,
+                this._spherical.phi,
+                false
+            );
 
             this._spherical.copy(this._sphericalEnd);
             this._target.copy(this._targetEnd);
@@ -449,6 +476,7 @@ class CameraControls {
         this.object.lookAt(new THREE.Vector3(0, 0, 0));
 
     }
+
 
 }
 

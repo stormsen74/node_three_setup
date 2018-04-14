@@ -151,24 +151,44 @@ class SceneCameraController {
         let distance = targetState.azimuthAngle - state.azimuthAngle;
         console.log('distance:', MathUtils.radToDeg(state.azimuthAngle));
 
-        let newAngle = 0;
+        // ——————————————————————————————————————————————————
+        // SHORT ROTATION
+        // ——————————————————————————————————————————————————
+
+        this.cameraControls.easeDamping = 1;
+        let shortAngle = 0;
+
         if (Math.abs(distance) > MathUtils.PI) {
             if (targetState.azimuthAngle > 0) {
-                console.log('>', this.cameraControls._spherical.theta)
-                newAngle = targetState.azimuthAngle + MathUtils.TWO_PI;
-                if (this.cameraControls._spherical.theta < 0) {
-                    newAngle = targetState.azimuthAngle - MathUtils.TWO_PI
-                }
+                shortAngle = targetState.azimuthAngle - MathUtils.TWO_PI;
             } else {
-                console.log('<', this.cameraControls._spherical.theta)
-                newAngle = targetState.azimuthAngle - MathUtils.TWO_PI;
-                if (this.cameraControls._spherical.theta > 0) {
-                    newAngle = targetState.azimuthAngle + MathUtils.TWO_PI
-                }
+                shortAngle = targetState.azimuthAngle + MathUtils.TWO_PI
             }
         } else {
-            console.log('distance <')
-            newAngle = targetState.azimuthAngle;
+            shortAngle = targetState.azimuthAngle;
+        }
+
+
+        // console.log('1=>', this.cameraControls._spherical.theta, shortAngle);
+
+        if (MathUtils.isPositive(this.cameraControls._spherical.theta) !== MathUtils.isPositive(shortAngle)) {
+            // console.log('diff!')
+
+            // if > 2PI
+            if ((Math.abs(this.cameraControls._spherical.theta) + Math.abs(shortAngle)) > MathUtils.TWO_PI) {
+                // console.log('2=>', this.cameraControls._spherical.theta, shortAngle);
+
+                if (MathUtils.isPositive(this.cameraControls._spherical.theta)) {
+                    shortAngle = MathUtils.TWO_PI - shortAngle;
+                    shortAngle = shortAngle % (MathUtils.TWO_PI);
+                    // console.log('a', shortAngle)
+                } else {
+                    // FORCE LEFT (
+                    shortAngle = this.cameraControls._spherical.theta - (MathUtils.TWO_PI - distance)
+                    // console.log('b', shortAngle)
+                }
+
+            }
         }
 
 
@@ -178,7 +198,7 @@ class SceneCameraController {
             offsetY: targetState.offsetY,
             offsetZ: targetState.offsetZ,
             polarAngle: targetState.polarAngle,
-            azimuthAngle: newAngle,
+            azimuthAngle: shortAngle,
             zoom: targetState.zoom,
             ease: Power2.easeInOut,
             onUpdate: () => {
