@@ -287,7 +287,7 @@ class CameraControls {
 
         function endDragging(event) {
 
-            if (Math.abs(scope.thetaVelocity) > .5) {
+            if (Math.abs(scope.thetaVelocity) > .1) {
                 if (scope.deltaTheta > 0) {
                     scope._spherical.theta = scope._spherical.theta - MathUtils.TWO_PI;
                     scope.easeDamping = scope.thetaVelocity * 1.25;
