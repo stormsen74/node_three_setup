@@ -2,7 +2,6 @@
 //  * Created by STORMSEN on 29.11.2016.
 //  */
 
-import CamHelperTest from "./demos/camHelperTest";
 
 var raf = require('raf');
 import Demo from './demos/demo';
@@ -10,12 +9,13 @@ import Matcap from './demos/matcap';
 import CV3 from './demos/checkVector3';
 import SphericalLight from './demos/sphericalLight';
 import Flow3 from './demos/flow3';
+import Polyplane from "./demos/polyplane";
 import ShaderCheck from './demos/shaderCheck';
-import Polyplane from './demos/polyplane';
 import ColladaImport from './demos/colladaImportTest.js';
 import SceneSetupBase from './demos/sceneSetupBase';
 import LandscapeSetupBase from './demos/landscapeSetupBase';
 import SecondCamSetup from "./demos/secondCamSetup";
+import CamHelperTest from "./demos/camHelperTest";
 
 
 // https://github.com/josdirksen
@@ -26,7 +26,7 @@ import SecondCamSetup from "./demos/secondCamSetup";
 
 const init = () => {
 
-    const demo = new SecondCamSetup();
+    const demo = new CamHelperTest();
 
     const update = () => {
         raf(update);
